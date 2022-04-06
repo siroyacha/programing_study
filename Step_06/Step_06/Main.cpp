@@ -12,6 +12,7 @@ int main(void)
 	}
 	*/
 
+	/*
 	int iFahrenheit, iCelsius = 0;
 	int iLower, iUpper, iStep;
 
@@ -28,6 +29,105 @@ int main(void)
 	}
 
 	printf_s("\n");
+	*/
 	
+	/*
+	for (int i = 0; i < 10; i++)
+	{
+		printf_s("LoopCount! : %d\n", i);
+	}
+
+	for (int i = 2; i < 10; i++)
+	{
+		for (int j = 1; j < 10; j++)
+		{
+			printf_s("%d X %d = %003d  ", i, j, i * j);
+		}
+		printf_s("\n");
+	}
+	printf_s("\n");
+	*/
+	
+	double cost = 24.0f;
+	for (int i = 1627; i < 2021; i++)
+	{
+		cost = cost+(cost * 0.08f);
+	}
+	printf_s("현재 가치는 약 %.2f달러\n", cost);
+	
+
+	/*
+	for (int i = 0; i <= 10; i++)
+	{
+		for (int j = 0; j < i; j++)
+		{
+			printf_s("*");
+		}
+		printf_s("\n");
+	}
+	printf_s("\n");
+
+	for (int i = 0; i < 10; i++)
+	{
+		for (int j = 10; j > i; j--)
+		{
+			printf_s("*");
+		}
+		printf_s("\n");
+	}
+
+	for (int i = 10; i >= 0; i--)
+	{
+		for (int j = 0; j < i; j++)
+		{
+			printf_s(" ");
+		}
+		for (int k = 10; k > i; k--)
+		{
+			printf_s("*");
+		}
+		printf_s("\n");
+	}
+
+	printf_s("\n");
+	for (int i = 10; i > 0; i--)
+	{
+		for (int j = 10; j > i; j--)
+		{
+			printf_s(" ");
+		}
+		for (int k = 0; k < i; k++)
+		{
+			printf_s("*");
+		}
+		printf_s("\n");
+	}
+	*/
+	for (int i = 0; i <= 10; i++)
+	{
+		for (int k = 10; k > i; k--)
+		{
+			printf_s(" ");
+			
+		}
+		for (int j = 0; j < i; j++)
+		{
+			printf_s("**");			
+		}
+		printf_s("\n");
+	}
+	for (int i = 10; i >= 0; i--)
+	{
+		for (int k = 10; k > i; k--)
+		{
+			printf_s(" ");
+
+		}
+		for (int j = 0; j < i; j++)
+		{
+			printf_s("**");
+		}
+		printf_s("\n");
+	}
 	return 0;
 }

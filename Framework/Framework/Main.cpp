@@ -5,6 +5,10 @@
 #include <malloc.h>
 #include <Windows.h>
 
+
+// ** 월요일 전까지 프레임워크 만들면서 한줄한줄 주석처리 하면서 만들기
+
+
 const int PLAYER = 0;
 const int ENEMY	 = 1;
 const int Max	 = 2;

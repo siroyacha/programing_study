@@ -39,7 +39,7 @@ typedef struct tagObject
 //필요한 함수들의 전방선언
 void InitializeObject(OBJECT* _Obj, int ObjectType);
 char* SetName();
-void StageScene(OBJECT* _Obj);
+void StageScene(OBJECT* Player, OBJECT* Enemy);
 
 int main()
 {
@@ -57,7 +57,7 @@ int main()
 	InitializeObject(Objects[ENEMY], ENEMY);
 	
 	//스테이지 신 출력(씬 매니저가 없어 임시적으로 직접 출력)
-	StageScene();
+	StageScene(Objects[PLAYER], Objects[ENEMY]);
 
 
 	return 0;
@@ -123,21 +123,21 @@ void StageScene(OBJECT* Player, OBJECT* Enemy)
 		// ** 콘솔창을 모두 지움.
 		system("cls");
 
-		printf_s("\n[%s]\n", Objects[PLAYER]->Info.Name);
-		printf_s("HP : %d\n", Objects[PLAYER]->Info.HP);
-		printf_s("MP : %d\n", Objects[PLAYER]->Info.MP);
-		printf_s("공격력 : %.2f\n", Objects[PLAYER]->Info.Att);
-		printf_s("방어력 : %.2f\n", Objects[PLAYER]->Info.Def);
-		printf_s("EXP : %d\n", Objects[PLAYER]->Info.EXP);
-		printf_s("Level : %d\n\n", Objects[PLAYER]->Info.Level);
+		printf_s("\n[%s]\n", Player->Info.Name);
+		printf_s("HP : %d\n", Player->Info.HP);
+		printf_s("MP : %d\n", Player->Info.MP);
+		printf_s("공격력 : %.2f\n", Player->Info.Att);
+		printf_s("방어력 : %.2f\n", Player->Info.Def);
+		printf_s("EXP : %d\n", Player->Info.EXP);
+		printf_s("Level : %d\n\n", Player->Info.Level);
 
-		printf_s("[%s]\n", Objects[ENEMY]->Info.Name);
-		printf_s("HP : %d\n", Objects[ENEMY]->Info.HP);
-		printf_s("MP : %d\n", Objects[ENEMY]->Info.MP);
-		printf_s("공격력 : %.2f\n", Objects[ENEMY]->Info.Att);
-		printf_s("방어력 : %.2f\n", Objects[ENEMY]->Info.Def);
-		printf_s("EXP : %d\n", Objects[ENEMY]->Info.EXP);
-		printf_s("Level : %d\n\n", Objects[ENEMY]->Info.Level);
+		printf_s("[%s]\n", Enemy->Info.Name);
+		printf_s("HP : %d\n", Enemy->Info.HP);
+		printf_s("MP : %d\n", Enemy->Info.MP);
+		printf_s("공격력 : %.2f\n", Enemy->Info.Att);
+		printf_s("방어력 : %.2f\n", Enemy->Info.Def);
+		printf_s("EXP : %d\n", Enemy->Info.EXP);
+		printf_s("Level : %d\n\n", Enemy->Info.Level);
 
 		//출력을 지연시키는 함수
 		Sleep(500);
@@ -157,26 +157,26 @@ void StageScene(OBJECT* Player, OBJECT* Enemy)
 			//공격 행동을 실행하는 부분
 		case 1:
 			//플레이어의 공격을 실행하는 부분
-			printf("[%s]의 공격\n", Objects[PLAYER]->Info.Name);
+			printf("[%s]의 공격\n", Player->Info.Name);
 			//플레이어의 공격력이 몬스터의 방어력보다 높은경우
-			if (Objects[PLAYER]->Info.Att > Objects[ENEMY]->Info.Def)
+			if (Player->Info.Att > Enemy->Info.Def)
 			{
-				Objects[ENEMY]->Info.HP -= Objects[PLAYER]->Info.Att - Objects[ENEMY]->Info.Def;
+				Enemy->Info.HP -= Player->Info.Att - Enemy->Info.Def;
 			}
 			//플레이어의 공격력이 몬스터의 방어력보다 낮은 경우
 			else
-				Objects[ENEMY]->Info.HP -= 1;
+				Enemy->Info.HP -= 1;
 
 			//몬스터의 공격을 실행하는 부분
-			printf("[%s]의 공격\n", Objects[ENEMY]->Info.Name);
+			printf("[%s]의 공격\n", Enemy->Info.Name);
 			//몬스터의 공격력이 플레이어의 방어력보다 높은 경우
-			if (Objects[ENEMY]->Info.Att > Objects[PLAYER]->Info.Def)
+			if (Enemy->Info.Att > Player->Info.Def)
 			{
-				Objects[PLAYER]->Info.HP -= Objects[ENEMY]->Info.Att - Objects[PLAYER]->Info.Def;
+				Player->Info.HP -= Enemy->Info.Att - Player->Info.Def;
 			}
 			//몬스터의 공격력이 플레이어의 방어력보다 낮은 경우
 			else
-				Objects[PLAYER]->Info.HP -= 1;
+				Player->Info.HP -= 1;
 
 			break;
 
@@ -187,10 +187,10 @@ void StageScene(OBJECT* Player, OBJECT* Enemy)
 			//랜덤함수를 통한 확률 결정
 			run = rand() % 100;
 			//몬스터의 레벨이 플레이어보다 높을 경우 플레이어에게 패널티를 주어 도망 확률을 낮추는 과정
-			if (Objects[ENEMY]->Info.Level > Objects[PLAYER]->Info.Level)
+			if (Enemy->Info.Level > Player->Info.Level)
 			{
 				//패널티를 감안하여 도주 확률을 결정하고 성공한 경우
-				if (run - (Objects[ENEMY]->Info.Level - Objects[PLAYER]->Info.Level) * 5 > 30)
+				if (run - (Enemy->Info.Level - Player->Info.Level) * 5 > 30)
 				{
 					printf_s("도망치는것에 [성공] 했습니다.\n");
 					//도망치는데 성공하여 씬이 끝나는 부분

@@ -39,6 +39,7 @@ typedef struct tagObject
 //필요한 함수들의 전방선언
 void InitializeObject(OBJECT* _Obj, int ObjectType);
 char* SetName();
+void StageScene(OBJECT* _Obj);
 
 int main()
 {
@@ -54,9 +55,70 @@ int main()
 
 	Objects[ENEMY] = (OBJECT*)malloc(sizeof(OBJECT));
 	InitializeObject(Objects[ENEMY], ENEMY);
+	
+	//스테이지 신 출력(씬 매니저가 없어 임시적으로 직접 출력)
+	StageScene();
 
+
+	return 0;
+}
+
+//캐릭터들의 정보를 초기화하는 함수
+void InitializeObject(OBJECT* _Obj, int ObjectType)
+{
+	//스위치문을 통해 캐릭터 타입별로 다른 정보로 초기화
+	switch (ObjectType)
+	{
+		//플레이어로 정보 초기화
+	case PLAYER:
+		_Obj->Info.Name = SetName();
+
+		_Obj->Info.Att = 10;
+		_Obj->Info.Def = 10;
+		_Obj->Info.EXP = 0;
+		_Obj->Info.HP = 100;
+		_Obj->Info.MP = 10;
+		_Obj->Info.Level = 1;
+		break;
+		//몬스터로 정보 초기화
+	case ENEMY:
+		_Obj->Info.Name = (char*)"Enemy";
+
+		_Obj->Info.Att = 5;
+		_Obj->Info.Def = 15;
+		_Obj->Info.EXP = 0;
+		_Obj->Info.HP = 30;
+		_Obj->Info.MP = 5;
+		_Obj->Info.Level = 7;
+		break;
+	}
+}
+
+//이름을 입력받는 함수
+char* SetName()
+{
+	//이름을 입력받을 변수
+	char Buffer[128] = "";
+
+	printf_s("이름 입력 : ");
+	scanf("%s", Buffer);
+
+	//입력받은 이름을 동적할당으로 저장할 변수(null값을 포함하기 때문에 크기가 1이 더 크다)
+	char* pName = (char*)malloc(strlen(Buffer) + 1);
+	//문자열 복사로 이름을 저장
+	strcpy(pName, Buffer);
+
+	//이름 반환
+	return pName;
+}
+
+//스테이지 신을 출력하는 함수
+void StageScene(OBJECT* Player, OBJECT* Enemy)
+{
+	//루프문 체크를 할 변수
+	int LoopCheck = 1;
 	//상태창 출력을 하는 반복문
-	while (true)
+	while (LoopCheck)
 	{
 		// ** 콘솔창을 모두 지움.
 		system("cls");
@@ -123,15 +185,16 @@ int main()
 			//랜덤 시드 초기화
 			srand(time(NULL));
 			//랜덤함수를 통한 확률 결정
-			run = rand();
+			run = rand() % 100;
 			//몬스터의 레벨이 플레이어보다 높을 경우 플레이어에게 패널티를 주어 도망 확률을 낮추는 과정
-			if (Objects[ENEMY]->Info.Level> Objects[PLAYER]->Info.Level)
+			if (Objects[ENEMY]->Info.Level > Objects[PLAYER]->Info.Level)
 			{
 				//패널티를 감안하여 도주 확률을 결정하고 성공한 경우
-				if (run % (Objects[ENEMY]->Info.Level - Objects[PLAYER]->Info.Level) +1 == 1)
+				if (run - (Objects[ENEMY]->Info.Level - Objects[PLAYER]->Info.Level) * 5 > 30)
 				{
 					printf_s("도망치는것에 [성공] 했습니다.\n");
 					//도망치는데 성공하여 씬이 끝나는 부분
+					LoopCheck = 0;
 					break;
 				}
 				//도망에 실패했을 경우
@@ -144,14 +207,15 @@ int main()
 			}
 			//플레이어의 레벨이 몬스터보다 높은 경우
 			else
-				//50프로의 확률로 도망에 성공
-				if (run % 2 == 1)
+				//70프로의 확률로 도망에 성공
+				if (run > 30)
 				{
 					printf_s("도망치는것에 [성공] 했습니다.\n");
 					//도망치는데 성공하여 씬이 끝나는 부분
+					LoopCheck = 0;
 					break;
 				}
-				//도망에 실패했을 경우
+			//도망에 실패했을 경우
 				else
 				{
 					printf_s("도망치는것에 [실패] 했습니다.\n");
@@ -163,53 +227,5 @@ int main()
 		}
 
 	}
-	return 0;
-}
 
-//캐릭터들의 정보를 초기화하는 함수
-void InitializeObject(OBJECT* _Obj, int ObjectType)
-{
-	//스위치문을 통해 캐릭터 타입별로 다른 정보로 초기화
-	switch (ObjectType)
-	{
-		//플레이어로 정보 초기화
-	case PLAYER:
-		_Obj->Info.Name = SetName();
-
-		_Obj->Info.Att = 10;
-		_Obj->Info.Def = 10;
-		_Obj->Info.EXP = 0;
-		_Obj->Info.HP = 100;
-		_Obj->Info.MP = 10;
-		_Obj->Info.Level = 1;
-		break;
-		//몬스터로 정보 초기화
-	case ENEMY:
-		_Obj->Info.Name = (char*)"Enemy";
-
-		_Obj->Info.Att = 5;
-		_Obj->Info.Def = 15;
-		_Obj->Info.EXP = 0;
-		_Obj->Info.HP = 30;
-		_Obj->Info.MP = 5;
-		_Obj->Info.Level = 7;
-		break;
-	}
-}
-//이름을 입력받는 함수
-char* SetName()
-{
-	//이름을 입력받을 변수
-	char Buffer[128] = "";
-
-	printf_s("이름 입력 : ");
-	scanf("%s", Buffer);
-
-	//입력받은 이름을 동적할당으로 저장할 변수(null값을 포함하기 때문에 크기가 1이 더 크다)
-	char* pName = (char*)malloc(strlen(Buffer) + 1);
-	//문자열 복사로 이름을 저장
-	strcpy(pName, Buffer);
-
-	//이름 반환
-	return pName;
 }

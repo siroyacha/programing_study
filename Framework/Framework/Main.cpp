@@ -6,8 +6,6 @@
 #include <Windows.h>
 
 
-// ** 월요일 전까지 프레임워크 만들면서 한줄한줄 주석처리 하면서 만들기
-
 //플레이어와 몬스터를 구분 하는 용도의 변수 선언
 const int PLAYER = 0;
 const int ENEMY	 = 1;
@@ -47,6 +45,7 @@ int main()
 	OBJECT Player;
 	OBJECT Enemy;
 
+	//구조체 배열의 선언
 	OBJECT* Objects[Max];
 
 	//플레이어와 몬스터를 동적 할당
@@ -117,6 +116,7 @@ void StageScene(OBJECT* Player, OBJECT* Enemy)
 {
 	//루프문 체크를 할 변수
 	int LoopCheck = 1;
+
 	//상태창 출력을 하는 반복문
 	while (LoopCheck)
 	{
@@ -175,9 +175,10 @@ void StageScene(OBJECT* Player, OBJECT* Enemy)
 				Player->Info.HP -= Enemy->Info.Att - Player->Info.Def;
 			}
 			//몬스터의 공격력이 플레이어의 방어력보다 낮은 경우
-			else
+			else			
 				Player->Info.HP -= 1;
 
+			//공격 종료
 			break;
 
 			//도망 행동을 실행하는 부분
@@ -186,6 +187,7 @@ void StageScene(OBJECT* Player, OBJECT* Enemy)
 			srand(time(NULL));
 			//랜덤함수를 통한 확률 결정
 			run = rand() % 100;
+
 			//몬스터의 레벨이 플레이어보다 높을 경우 플레이어에게 패널티를 주어 도망 확률을 낮추는 과정
 			if (Enemy->Info.Level > Player->Info.Level)
 			{
@@ -205,6 +207,7 @@ void StageScene(OBJECT* Player, OBJECT* Enemy)
 					Sleep(500);
 				}
 			}
+
 			//플레이어의 레벨이 몬스터보다 높은 경우
 			else
 				//70프로의 확률로 도망에 성공
@@ -225,7 +228,5 @@ void StageScene(OBJECT* Player, OBJECT* Enemy)
 			//도망 부분이 끝나고 돌아가는 부분
 			break;
 		}
-
 	}
-
 }

@@ -28,6 +28,7 @@ typedef struct tagInfo
 
 }INFO;
 
+// ** 오브젝트 단위로 묶기 위한 구조체
 typedef struct tagObject
 {
 	INFO Info;

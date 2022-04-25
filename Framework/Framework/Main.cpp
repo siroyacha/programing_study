@@ -11,6 +11,14 @@ const int PLAYER = 0;
 const int ENEMY	 = 1;
 const int Max	 = 2;
 
+
+const int Scene_Logo = 0;
+const int Scene_Menu = 1;
+const int Scene_Stage = 2;
+const int Scene_Exit = 3;
+
+int SceneState = 0;
+
 //플레이어와 몬스터 등 캐릭터들의 정보를 구성하는 구조체
 typedef struct tagInfo
 {
@@ -36,12 +44,17 @@ typedef struct tagObject
 }OBJECT;
 
 //필요한 함수들의 전방선언
+void SceneManager();
 void InitializeObject(OBJECT* _Obj, int ObjectType);
 char* SetName();
+
 void StageScene(OBJECT* Player, OBJECT* Enemy);
+void LogoScene();
+void MenuScene();
 
 int main()
 {
+	/*
 	//플레이어와 몬스터의 정보 구조체를 선언
 	OBJECT Player;
 	OBJECT Enemy;
@@ -58,8 +71,24 @@ int main()
 	
 	//스테이지 신 출력(씬 매니저가 없어 임시적으로 직접 출력)
 	StageScene(Objects[PLAYER], Objects[ENEMY]);
+	*/
+
+	DWORD dwTime = GetTickCount();
+	int Delay = 0;
+
+	int UpCount = 0;
+
+	while (true)
+	{
+		if (dwTime + Delay < GetTickCount())
+		{
+			dwTime = GetTickCount();
+
+			system("cls");
 
 
+		}
+	}
 	return 0;
 }
 

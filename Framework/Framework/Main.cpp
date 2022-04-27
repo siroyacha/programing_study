@@ -5,9 +5,10 @@
 #include <malloc.h>
 #include <Windows.h>
 
+// 포트폴리오 영상 30초 안넘기게
 
 // ** 참고 : https://www.youtube.com/watch?v=_nuS86ITjIM
-
+// ** 아스키 아트 : http://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type%20Something%20
 
 // ** 검정	 0
 // ** 어두운 파랑	 1
@@ -26,6 +27,9 @@
 // ** 노랑	 14
 // ** 하양	 15
 
+const int Warrior = 1;
+const int Hunter = 2;
+const int Wizard = 3;
 
 const int Scene_Logo = 0;
 const int Scene_Menu = 1;
@@ -81,6 +85,10 @@ void SetColor(int _Color);
 void HideCursor();
 
 int SetPlayerJob();
+void LevelUp(OBJECT* _Player);
+void PrintStatus(OBJECT* _Object);
+void Move(int* Encounter);
+int EnCounter();
 
 
 int main()
@@ -164,7 +172,7 @@ void MenuScene()
 {
 	printf_s("MenuScene\n");
 
-	printf_s("다음 씬 ㄱㄱ??\n1. 이동\n2. 종료\n일력 : ");
+	printf_s("게임을 시작 하시겠습니까?\n1. 이동\n2. 종료\n입력 : ");
 
 	int i = 0;
 	scanf("%d", &i);
@@ -189,10 +197,13 @@ void InitializePlayer(OBJECT* _Player)
 	_Player->Info.Type = SetPlayerJob();
 }
 
-DWORD SetnameTime = 0;
 
 void PlayerScene(OBJECT* _Player)
 {
+
+	PrintStatus(_Player);
+
+	DWORD SetnameTime = 0;
 	if (SetnameTime + 10000 < GetTickCount())
 		Check = 1;
 
@@ -200,9 +211,18 @@ void PlayerScene(OBJECT* _Player)
 	{
 		SetnameTime = GetTickCount();
 
-		_Player->Name = SetName();
+		_Player->Info.EXP += 100;
 		Check = 0;
 	}
+	
+
+	if (_Player->Info.EXP >= 100)
+	{
+		LevelUp(_Player);
+		_Player->Info.EXP = 0;
+	}
+
+
 }
 
 void InitializeEnemy(OBJECT* _Enemy)
@@ -220,7 +240,7 @@ void InitializeEnemy(OBJECT* _Enemy)
 
 void EnemyScene(OBJECT* _Enemy)
 {
-
+	PrintStatus(_Enemy);
 }
 
 
@@ -245,16 +265,23 @@ char* SetName()
 //스테이지 신을 출력하는 함수
 void StageScene(OBJECT* _Player, OBJECT* _Enemy)
 {
+	int Encounter = 0;
+	//이동
+	Move(&Encounter);
+	
 	// ** 전투
-	PlayerScene(_Player);
-	EnemyScene(_Enemy);
+	if (Encounter)
+	{
+		PlayerScene(_Player);
+		EnemyScene(_Enemy);
+	}
 }
 
 void SetPosition(int _x, int _y, char* _str, int _Color)
 {
 	COORD Pos = { _x,_y };
 
-	SetConsoleCursorPosition( GetStdHandle(STD_OUTPUT_HANDLE), Pos);
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), Pos);
 	SetColor(_Color);
 
 	printf_s("%s", _str);
@@ -278,10 +305,89 @@ void HideCursor()
 int SetPlayerJob()
 {
 	int type = 0;
+	system("cls");
 	printf_s("당신의 직업은 무엇입니까?\n");
-	printf_s("1.전사\t 2.궁수\t 3.마법사\n");
+	printf_s("1.전사\t 2.궁수\t 3.마법사\n입력 : ");
 	
 	scanf_s("%d", &type);
 
 	return type;
+}
+
+void LevelUp(OBJECT* _Player)
+{
+	_Player->Info.Level++;
+	switch (_Player->Info.Type)
+	{
+	case Warrior:
+		_Player->Info.Att += 10;
+		_Player->Info.Def += 5;
+		_Player->Info.HP += 100;
+		_Player->Info.MP += 50;
+		break;
+	case Hunter:
+		_Player->Info.Att += 10;
+		_Player->Info.Def += 5;
+		_Player->Info.HP += 100;
+		_Player->Info.MP += 50;
+		break;
+	case Wizard:
+		_Player->Info.Att += 10;
+		_Player->Info.Def += 5;
+		_Player->Info.HP += 100;
+		_Player->Info.MP += 50;
+		break;
+	}
+}
+
+void PrintStatus(OBJECT* _Object)
+{
+	printf_s("%s\n", _Object->Name);
+	printf_s("레벨 : %02d\n직업 : %d\n체력 : %d\n마나 : %d\n공격력 : %0.2f\n방어력 : %0.2f\n경험치 : %03d\n",
+		_Object->Info.Level,_Object->Info.Type, _Object->Info.HP, _Object->Info.MP, _Object->Info.Att, _Object->Info.Def, _Object->Info.EXP);
+}
+
+void Move(int* Encounter)
+{
+	int MoveHelper = 0;
+	printf_s("이동 하시겠습니까?\n1. 이동\n0. 종료\n입력 : ");
+	scanf("%d", &MoveHelper);
+	switch (MoveHelper)
+	{
+	case 1:
+		*Encounter = EnCounter();
+		break;
+	case 0:
+		exit(NULL);
+		break;
+	}
+	DWORD SetMoveTime = 0;
+	if (SetMoveTime + 1000 < GetTickCount())
+		Check = 1;
+
+	if (Check)
+	{
+		SetMoveTime = GetTickCount();
+
+		Check = 0;
+	}
+	if (*Encounter)
+		printf_s("몬스터 조우!\n");
+	else
+		printf_s("이동 성공\n");
+}
+
+int EnCounter()
+{
+	int _Encounter = 0;
+	srand(GetTickCount());
+
+	_Encounter = (rand() % 100) + 1;
+
+	if (_Encounter <= 80)
+		return 0;
+	if (_Encounter <= 5)
+		return 2;
+	else
+		return 1;
 }

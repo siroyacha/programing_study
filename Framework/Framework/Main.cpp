@@ -172,7 +172,7 @@ void MenuScene()
 {
 	printf_s("MenuScene\n");
 
-	printf_s("게임을 시작 하시겠습니까?\n1. 이동\n2. 종료\n입력 : ");
+	printf_s("게임을 시작 하시겠습니까?\n1. 시작\n2. 종료\n입력 : ");
 
 	int i = 0;
 	scanf("%d", &i);
@@ -202,7 +202,7 @@ void PlayerScene(OBJECT* _Player)
 {
 
 	PrintStatus(_Player);
-
+	/*
 	DWORD SetnameTime = 0;
 	if (SetnameTime + 10000 < GetTickCount())
 		Check = 1;
@@ -214,6 +214,7 @@ void PlayerScene(OBJECT* _Player)
 		_Player->Info.EXP += 100;
 		Check = 0;
 	}
+	*/
 	
 
 	if (_Player->Info.EXP >= 100)
@@ -361,8 +362,12 @@ void Move(int* Encounter)
 		exit(NULL);
 		break;
 	}
+	if (*Encounter)
+		printf_s("몬스터 조우!\n");
+	else
+		printf_s("이동 성공\n");
 	DWORD SetMoveTime = 0;
-	if (SetMoveTime + 1000 < GetTickCount())
+	if (SetMoveTime + 3000 < GetTickCount())
 		Check = 1;
 
 	if (Check)
@@ -371,10 +376,6 @@ void Move(int* Encounter)
 
 		Check = 0;
 	}
-	if (*Encounter)
-		printf_s("몬스터 조우!\n");
-	else
-		printf_s("이동 성공\n");
 }
 
 int EnCounter()
@@ -390,4 +391,63 @@ int EnCounter()
 		return 2;
 	else
 		return 1;
+}
+
+void MapScene(OBJECT* _Player)
+{
+	int P_x = 0;
+	int P_y = 0;
+	/*
+	SetPosition()
+	*/
+}
+
+void TownScene()
+{
+
+}
+
+void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter)
+{
+	int runcounter = 0;
+	int runchance = 0;
+	int battelhelper = 0;
+
+	srand(GetTickCount());
+
+	runchance = (rand() - (_Enemy->Info.Level - _Player->Info.Level) * 2) % 100;
+
+	if (*Encounter == 1)
+	{
+		printf_s("도주하시겠습니까?\n1. 예 2. 아니요\n");
+		scanf("%d", &runcounter);
+
+		if (runcounter==1)
+		{
+			if (runchance>=70)
+			{
+				printf_s("도주 성공!\n");
+				*Encounter = 0;
+			}
+			else
+			{
+				printf("도주 실패\n전투에 진입합니다\n");
+				Sleep(500);
+			}
+		}
+		printf_s("전투가 시작됩니다!");
+		Sleep(500);
+
+		PlayerScene(_Player);
+		EnemyScene(_Enemy);
+
+		printf_s("1. 공격 2. 마법 3. 아이템 사용\n");
+		switch (battelhelper)
+		{
+		case 1:
+			break;
+		default:
+			break;
+		}
+	}
 }

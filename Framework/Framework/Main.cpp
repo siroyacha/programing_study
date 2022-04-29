@@ -40,6 +40,7 @@ int SceneState = 0;
 
 int Check = 1;
 
+
 //플레이어와 몬스터 등 캐릭터들의 정보를 구성하는 구조체
 typedef struct tagInfo
 {
@@ -89,6 +90,7 @@ void LevelUp(OBJECT* _Player);
 void PrintStatus(OBJECT* _Object);
 void Move(int* Encounter);
 int EnCounter();
+void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter);
 
 
 int main()
@@ -101,7 +103,7 @@ int main()
 	system("mode con:cols=120 lines=30");
 
 	//**콘솔창 이름 설정
-	system("title 전은평 Framework v0.6");
+	system("title 전은평 Framework v0.7");
 
 	// ** 전체 배경색을 변경함.
 	//system("color 70");
@@ -188,7 +190,7 @@ void InitializePlayer(OBJECT* _Player)
 {
 	_Player->Name = SetName();
 
-	_Player->Info.Att = 10;
+	_Player->Info.Att = 20;
 	_Player->Info.Def = 10;
 	_Player->Info.EXP = 0;
 	_Player->Info.HP = 100;
@@ -200,30 +202,13 @@ void InitializePlayer(OBJECT* _Player)
 
 void PlayerScene(OBJECT* _Player)
 {
-
 	PrintStatus(_Player);
-	/*
-	DWORD SetnameTime = 0;
-	if (SetnameTime + 10000 < GetTickCount())
-		Check = 1;
-
-	if (Check)
-	{
-		SetnameTime = GetTickCount();
-
-		_Player->Info.EXP += 100;
-		Check = 0;
-	}
-	*/
-	
 
 	if (_Player->Info.EXP >= 100)
 	{
 		LevelUp(_Player);
 		_Player->Info.EXP = 0;
 	}
-
-
 }
 
 void InitializeEnemy(OBJECT* _Enemy)
@@ -231,7 +216,7 @@ void InitializeEnemy(OBJECT* _Enemy)
 	_Enemy->Name = (char*)"Enemy";
 
 	_Enemy->Info.Att = 5;
-	_Enemy->Info.Def = 15;
+	_Enemy->Info.Def = 10;
 	_Enemy->Info.EXP = 0;
 	_Enemy->Info.HP = 30;
 	_Enemy->Info.MP = 5;
@@ -273,8 +258,10 @@ void StageScene(OBJECT* _Player, OBJECT* _Enemy)
 	// ** 전투
 	if (Encounter)
 	{
+		system("cls");
 		PlayerScene(_Player);
 		EnemyScene(_Enemy);
+		BattelScene(_Player, _Enemy, &Encounter);
 	}
 }
 
@@ -366,6 +353,7 @@ void Move(int* Encounter)
 		printf_s("몬스터 조우!\n");
 	else
 		printf_s("이동 성공\n");
+
 	DWORD SetMoveTime = 0;
 	if (SetMoveTime + 3000 < GetTickCount())
 		Check = 1;
@@ -416,7 +404,7 @@ void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter)
 	srand(GetTickCount());
 
 	runchance = (rand() - (_Enemy->Info.Level - _Player->Info.Level) * 2) % 100;
-
+	
 	if (*Encounter == 1)
 	{
 		printf_s("도주하시겠습니까?\n1. 예 2. 아니요\n");
@@ -424,30 +412,68 @@ void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter)
 
 		if (runcounter==1)
 		{
-			if (runchance>=70)
+			if (runchance>=30)
 			{
 				printf_s("도주 성공!\n");
-				*Encounter = 0;
+				*Encounter = 0;				
 			}
 			else
-			{
-				printf("도주 실패\n전투에 진입합니다\n");
-				Sleep(500);
-			}
+				printf("도주 실패\n전투에 진입합니다\n");				
 		}
-		printf_s("전투가 시작됩니다!");
 		Sleep(500);
 
-		PlayerScene(_Player);
-		EnemyScene(_Enemy);
-
-		printf_s("1. 공격 2. 마법 3. 아이템 사용\n");
-		switch (battelhelper)
+		while (*Encounter)
 		{
-		case 1:
-			break;
-		default:
-			break;
+			system("cls");
+
+			PlayerScene(_Player);
+			EnemyScene(_Enemy);
+
+			printf_s("1. 공격 2. 마법 3. 아이템 사용\n");
+			scanf("%d", &battelhelper);
+
+			switch (battelhelper)
+			{
+			case 1:
+				if (_Player->Info.Att>_Enemy->Info.Def)
+				{
+					_Enemy->Info.HP = _Enemy->Info.HP - (int)(_Player->Info.Att - _Enemy->Info.Def);
+					printf_s("플레이어의 공격!\n%d 데미지!\n", (int)(_Player->Info.Att - _Enemy->Info.Def));
+				}
+				else
+				{
+					_Enemy->Info.HP -= 1;
+					printf_s("플레이어의 공격!\n1 데미지!\n");
+				}
+				Sleep(500);
+				if (_Enemy->Info.Att>_Player->Info.Def)
+				{
+					_Player->Info.HP = _Player->Info.HP - (int)(_Enemy->Info.Att - _Player->Info.Def);
+					printf_s("%s의 공격!\n%d 데미지!\n", _Enemy->Name, (int)(_Enemy->Info.Att - _Player->Info.Def));
+				}
+				else
+				{
+					_Player->Info.HP -= 1;
+					printf_s("%s의 공격!\n1 데미지!\n", _Enemy->Name);
+				}
+				Sleep(500);
+				if (_Player->Info.HP <= 0 || _Enemy->Info.HP <= 0)
+				{
+					printf_s("전투 종료");
+					if (_Player->Info.HP<=0)
+					{
+						printf_s("당신은 사망하셨습니다.\n마을로 돌아갑니다");
+						*Encounter = 0;
+					}
+					else
+					{
+						printf_s("승리!\n");
+						_Player->Info.EXP = _Player->Info.EXP + (_Enemy->Info.Level * 50);
+						*Encounter = 0;
+					}
+				}
+				break;
+			}
 		}
 	}
 }

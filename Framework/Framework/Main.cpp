@@ -58,6 +58,18 @@ typedef struct tagInfo
 	int Type;
 }INFO;
 
+typedef struct tagItem
+{
+	char* Name;
+	int type;
+	int quantity;
+}Item;
+
+typedef struct tagInventory
+{
+	Item Item;
+}Inventory;
+
 // ** 오브젝트 단위로 묶기 위한 구조체
 typedef struct tagObject
 {

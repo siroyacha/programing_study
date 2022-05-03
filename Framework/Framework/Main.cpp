@@ -35,6 +35,9 @@ const int Scene_Logo = 0;
 const int Scene_Menu = 1;
 const int Scene_Stage = 2;
 const int Scene_Exit = 3;
+const int Scene_Battel = 4;
+const int Scene_Town = 5;
+const int Scene_Mab = 6;
 
 int SceneState = 0;
 
@@ -67,7 +70,7 @@ typedef struct tagItem
 
 typedef struct tagInventory
 {
-	Item Item;
+	Item Item[10];
 }Inventory;
 
 // ** 오브젝트 단위로 묶기 위한 구조체
@@ -75,9 +78,11 @@ typedef struct tagObject
 {
 	char* Name;
 	INFO Info;
-
+	Inventory Inventory;
 }OBJECT;
 
+Item HpPotion = { (char*)"HP포션",1,1 };
+Item MpPotion = { (char*)"MP포션",2,1 };
 //필요한 함수들의 전방선언
 
 void SceneManager(OBJECT* _Player, OBJECT* _Enemy);
@@ -103,7 +108,6 @@ void PrintStatus(OBJECT* _Object);
 void Move(int* Encounter);
 int EnCounter();
 void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter);
-
 
 int main()
 {
@@ -162,8 +166,13 @@ void SceneManager(OBJECT* _Player, OBJECT* _Enemy)
 		StageScene(_Player, _Enemy);
 		break;
 	case Scene_Exit:
-
 		exit(NULL);// ** 프로그램 종료
+		break;
+	case Scene_Battel:
+	//	BattelScene(_Player, _Enemy);
+		break;
+	case Scene_Town:
+		TownScene(_Player);
 		break;
 	}
 }
@@ -211,7 +220,6 @@ void InitializePlayer(OBJECT* _Player)
 	_Player->Info.Type = SetPlayerJob();
 }
 
-
 void PlayerScene(OBJECT* _Player)
 {
 	PrintStatus(_Player);
@@ -240,7 +248,6 @@ void EnemyScene(OBJECT* _Enemy)
 {
 	PrintStatus(_Enemy);
 }
-
 
 //이름을 입력받는 함수
 char* SetName()
@@ -350,7 +357,7 @@ void PrintStatus(OBJECT* _Object)
 void Move(int* Encounter)
 {
 	int MoveHelper = 0;
-	printf_s("이동 하시겠습니까?\n1. 이동\n0. 종료\n입력 : ");
+	printf_s("이동 하시겠습니까?\n1.이동 0.종료\n입력 : ");
 	scanf("%d", &MoveHelper);
 	switch (MoveHelper)
 	{
@@ -402,9 +409,64 @@ void MapScene(OBJECT* _Player)
 	*/
 }
 
-void TownScene()
+void TownScene(OBJECT* _Player)
 {
+	int TownHelper = 0;
+	int Count = 0;
+	Item _ShopHppotion = HpPotion;
+	Item _ShopMppotion = MpPotion;
+	_ShopHppotion.quantity = 20;
+	OBJECT* Shop = (OBJECT*)malloc(sizeof(OBJECT));
 
+	Shop->Name = (char*)"상점";
+	Shop->Inventory.Item[1] = _ShopHppotion;
+	Shop->Inventory.Item[2] = _ShopMppotion;
+	while (SceneState==4)
+	{
+		system("cls");
+		printf_s("어떤걸 구매하시겠습니까?\n1.HP포션 2.MP포션\n");
+		scanf_s("%d", &TownHelper);
+
+		switch (TownHelper)
+		{
+		case 1:
+			if (Shop->Inventory.Item[1].quantity)
+			{
+				printf_s("몇개 구매하시겠습니까?1~%d\n", Shop->Inventory.Item[1].quantity);
+				scanf_s("%d", &Count);
+				_Player->Inventory.Item[1].quantity += Count;
+				Shop->Inventory.Item[1].quantity -= Count;
+				printf_s("구매 완료!\n");
+				printf_s("현재 보유 갯수 %d개", _Player->Inventory.Item[1].quantity);
+				break;
+			}
+
+			printf_s("재고 부족\n");
+			break;
+		case 2:
+			if (Shop->Inventory.Item[2].quantity)
+			{
+				printf_s("몇개 구매하시겠습니까?1~%d\n", Shop->Inventory.Item[2].quantity);
+				scanf_s("%d", &Count);
+				_Player->Inventory.Item[2].quantity += Count;
+				Shop->Inventory.Item[1].quantity -= Count;
+				printf_s("현재 보유 갯수 %d개", _Player->Inventory.Item[2].quantity);
+				break;
+			}
+
+			printf_s("재고 부족\n");
+			break;
+		}
+		printf_s("계속 구매하시겠습니까?\n1.예 2.아니요");
+		scanf_s("%d", &TownHelper);
+		if (TownHelper == 2)
+		{
+			printf_s("마을에서 나갑니다\n");
+			SceneState = 2;
+		}
+	}
+
+	free(Shop);
 }
 
 void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter)

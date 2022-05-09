@@ -126,7 +126,7 @@ int main()
 	system("mode con:cols=120 lines=30");
 
 	//**콘솔창 이름 설정
-	system("title 전은평 Framework v0.7");
+	system("title 전은평 Framework v0.8");
 
 	// ** 전체 배경색을 변경함.
 	//system("color 70");
@@ -236,6 +236,9 @@ void InitializePlayer(OBJECT* _Player)
 
 	_Player->P_x = 10;
 	_Player->P_y = 15;
+
+	_Player->Inventory.Item[1] = HpPotion;
+	_Player->Inventory.Item[2] = MpPotion;
 }
 
 void PlayerScene(OBJECT* _Player)
@@ -375,7 +378,7 @@ void PrintStatus(OBJECT* _Object)
 void Move(OBJECT* _Player, int* Encounter)
 {
 	int MoveHelper = 0;
-	printf_s("이동 하시겠습니까?\n1.상단이동 2.하단이동 3.좌측이동 4.우측이동 5.아이템 사용(확인) 6.지도열기 0.종료 \n입력 : ");
+	printf_s("이동 하시겠습니까?\n1.상단이동 2.하단이동 3.좌측이동 4.우측이동 5.아이템 사용(확인) 6.지도열기 7.상점 0.종료 \n입력 : ");
 	scanf("%d", &MoveHelper);
 	switch (MoveHelper)
 	{
@@ -400,6 +403,9 @@ void Move(OBJECT* _Player, int* Encounter)
 		break;
 	case 6:
 		SceneState = Scene_Mab;
+		break;
+	case 7:
+		SceneState = Scene_Town;
 		break;
 	case 0:
 		exit(NULL);
@@ -443,13 +449,13 @@ void MapScene(OBJECT* _Player)
 	int P_x = 0;
 	int P_y = 0;
 	int UI_x = 0;
-	int UI_y = 35;
+	int UI_y = 50;
 
 	P_x = _Player->P_x;
 	P_y = _Player->P_y;
-	SetPosition(P_x, P_y, (char*)"test");
+	SetPosition(P_x, P_y, (char*)"test\n");
 
-	SetPosition(UI_x, UI_y, (char*)"종료를 원하면 1입력");
+	SetPosition(UI_x, UI_y, (char*)"종료를 원하면 1입력\n");
 
 	scanf("%d", &MabHelper);
 
@@ -460,58 +466,59 @@ void MapScene(OBJECT* _Player)
 
 void TownScene(OBJECT* _Player)
 {
-	int TownHelper = 0;
+	int TownHelper = 1;
 	int Count = 0;
 	Item _ShopHppotion = HpPotion;
 	Item _ShopMppotion = MpPotion;
 	_ShopHppotion.quantity = 20;
+	_ShopMppotion.quantity = 20;
 	OBJECT* Shop = (OBJECT*)malloc(sizeof(OBJECT));
 
 	Shop->Name = (char*)"상점";
-	Shop->Inventory.Item[1] = _ShopHppotion;
-	Shop->Inventory.Item[2] = _ShopMppotion;
-	while (SceneState==4)
+	Shop->Inventory.Item[0] = _ShopHppotion;
+	Shop->Inventory.Item[1] = _ShopMppotion;
+	while (TownHelper)
 	{
-		system("cls");
 		printf_s("어떤걸 구매하시겠습니까?\n1.HP포션 2.MP포션\n");
 		scanf_s("%d", &TownHelper);
 
 		switch (TownHelper)
 		{
 		case 1:
-			if (Shop->Inventory.Item[1].quantity)
+			if (Shop->Inventory.Item[0].quantity)
 			{
-				printf_s("몇개 구매하시겠습니까?1~%d\n", Shop->Inventory.Item[1].quantity);
+				printf_s("몇개 구매하시겠습니까?1~%d\n", Shop->Inventory.Item[0].quantity);
 				scanf_s("%d", &Count);
-				_Player->Inventory.Item[1].quantity += Count;
-				Shop->Inventory.Item[1].quantity -= Count;
+				_Player->Inventory.Item[1].quantity = _Player->Inventory.Item[1].quantity + Count;
+				Shop->Inventory.Item[0].quantity = Shop->Inventory.Item[0].quantity - Count;
 				printf_s("구매 완료!\n");
-				printf_s("현재 보유 갯수 %d개", _Player->Inventory.Item[1].quantity);
+				printf_s("현재 보유 갯수 %d개\n", _Player->Inventory.Item[0].quantity);
 				break;
 			}
 
 			printf_s("재고 부족\n");
 			break;
 		case 2:
-			if (Shop->Inventory.Item[2].quantity)
+			if (Shop->Inventory.Item[1].quantity)
 			{
-				printf_s("몇개 구매하시겠습니까?1~%d\n", Shop->Inventory.Item[2].quantity);
+				printf_s("몇개 구매하시겠습니까?1~%d\n", Shop->Inventory.Item[1].quantity);
 				scanf_s("%d", &Count);
-				_Player->Inventory.Item[2].quantity += Count;
-				Shop->Inventory.Item[1].quantity -= Count;
-				printf_s("현재 보유 갯수 %d개", _Player->Inventory.Item[2].quantity);
+				_Player->Inventory.Item[2].quantity = _Player->Inventory.Item[2].quantity + Count;
+				Shop->Inventory.Item[1].quantity = Shop->Inventory.Item[1].quantity - Count;
+				printf_s("현재 보유 갯수 %d개\n", _Player->Inventory.Item[1].quantity);
 				break;
 			}
 
 			printf_s("재고 부족\n");
 			break;
 		}
-		printf_s("계속 구매하시겠습니까?\n1.예 2.아니요");
+		printf_s("계속 구매하시겠습니까?\n1.예 2.아니요\n");
 		scanf_s("%d", &TownHelper);
 		if (TownHelper == 2)
 		{
 			printf_s("마을에서 나갑니다\n");
 			SceneState = 2;
+			TownHelper = 0;
 		}
 	}
 
@@ -606,19 +613,21 @@ void InventoryScene(OBJECT* _Player)
 	int inventoryHelper = 1;
 	int itemtype = 0;
 	//null값이 아닌 다른 방법으로 아이템 갯수 확인해야 함
+	/*
 	if (_Player->Inventory.Item==NULL)
 	{
 		printf_s("아이템이 존재하지 않습니다!!\n이동화면으로 돌아갑니다");
 		inventoryHelper = 0;
 	}
+	*/
 	while (inventoryHelper)
 	{
 		printf_s("사용할 아이템 선택\n");
-		for (int i = 0; i < sizeof(_Player->Inventory.Item); i++)
+		for (int i = 1; i < 3; i++)
 		{
 			printf_s("%d. %s(%d개) ", i, _Player->Inventory.Item[i].Name, _Player->Inventory.Item[i].quantity);
 		}
-		printf_s("0. 종료");
+		printf_s("0. 종료\n");
 		scanf("%d", &inventoryHelper);
 
 		_Player->Inventory.Item[inventoryHelper].quantity--;

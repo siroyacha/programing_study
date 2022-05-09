@@ -6,6 +6,7 @@
 #include <Windows.h>
 
 // 포트폴리오 영상 30초 안넘기게
+// 16일 학원 출발 '전'까지 영상 보내기
 
 // ** 참고 : https://www.youtube.com/watch?v=_nuS86ITjIM
 // ** 아스키 아트 : http://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type%20Something%20
@@ -169,7 +170,7 @@ void SceneManager(OBJECT* _Player, OBJECT* _Enemy)
 		exit(NULL);// ** 프로그램 종료
 		break;
 	case Scene_Battel:
-	//	BattelScene(_Player, _Enemy);
+	//	BattelScene(_Player, _Enemy,)
 		break;
 	case Scene_Town:
 		TownScene(_Player);

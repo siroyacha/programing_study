@@ -39,6 +39,7 @@ const int Scene_Exit = 3;
 const int Scene_Battel = 4;
 const int Scene_Town = 5;
 const int Scene_Mab = 6;
+const int Scene_Invetory = 7;
 
 int SceneState = 0;
 
@@ -80,6 +81,8 @@ typedef struct tagObject
 	char* Name;
 	INFO Info;
 	Inventory Inventory;
+	int P_x;
+	int P_y;
 }OBJECT;
 
 Item HpPotion = { (char*)"HP포션",1,1 };
@@ -106,9 +109,12 @@ void HideCursor();
 int SetPlayerJob();
 void LevelUp(OBJECT* _Player);
 void PrintStatus(OBJECT* _Object);
-void Move(int* Encounter);
+void Move(OBJECT* _Player, int* Encounter);
 int EnCounter();
 void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter);
+void MapScene(OBJECT* _Player);
+void TownScene(OBJECT* _Player);
+void InventoryScene(OBJECT* _Player);
 
 int main()
 {
@@ -150,6 +156,8 @@ int main()
 		}
 	}
 
+	free(Player);
+	free(Monster);
 	return 0;
 }
 
@@ -170,10 +178,16 @@ void SceneManager(OBJECT* _Player, OBJECT* _Enemy)
 		exit(NULL);// ** 프로그램 종료
 		break;
 	case Scene_Battel:
-	//	BattelScene(_Player, _Enemy,)
+	//	BattelScene(_Player, _Enemy, Encounter)
 		break;
 	case Scene_Town:
 		TownScene(_Player);
+		break;
+	case Scene_Invetory:
+		InventoryScene(_Player);
+		break;
+	case Scene_Mab:
+		MapScene(_Player);
 		break;
 	}
 }
@@ -186,9 +200,9 @@ void LogoScene()
 	SetPosition(Width, Height + 1, (char*)"   __         _____    ");
 	SetPosition(Width, Height + 2, (char*)"  / /  ___   / ___/__  ");
 	SetPosition(Width, Height + 3, (char*)" / /__/ _ \\/ (_ / _ \\ ");
-	SetPosition(Width, Height + 4, (char*)"/____/\___/\\___/\\___/ ");
+	SetPosition(Width, Height + 4, (char*)"/____/\\___/\\___/\\___/ ");
 
-	Sleep(5000);
+	Sleep(1000);
 	SceneState++;
 }
 
@@ -219,6 +233,9 @@ void InitializePlayer(OBJECT* _Player)
 	_Player->Info.MP = 10;
 	_Player->Info.Level = 1;
 	_Player->Info.Type = SetPlayerJob();
+
+	_Player->P_x = 10;
+	_Player->P_y = 15;
 }
 
 void PlayerScene(OBJECT* _Player)
@@ -273,7 +290,7 @@ void StageScene(OBJECT* _Player, OBJECT* _Enemy)
 {
 	int Encounter = 0;
 	//이동
-	Move(&Encounter);
+	Move(_Player, &Encounter);
 	
 	// ** 전투
 	if (Encounter)
@@ -355,15 +372,34 @@ void PrintStatus(OBJECT* _Object)
 		_Object->Info.Level,_Object->Info.Type, _Object->Info.HP, _Object->Info.MP, _Object->Info.Att, _Object->Info.Def, _Object->Info.EXP);
 }
 
-void Move(int* Encounter)
+void Move(OBJECT* _Player, int* Encounter)
 {
 	int MoveHelper = 0;
-	printf_s("이동 하시겠습니까?\n1.이동 0.종료\n입력 : ");
+	printf_s("이동 하시겠습니까?\n1.상단이동 2.하단이동 3.좌측이동 4.우측이동 5.아이템 사용(확인) 6.지도열기 0.종료 \n입력 : ");
 	scanf("%d", &MoveHelper);
 	switch (MoveHelper)
 	{
 	case 1:
 		*Encounter = EnCounter();
+		_Player->P_y -= 1;
+		break;
+	case 2:
+		*Encounter = EnCounter();
+		_Player->P_y += 1;
+		break;
+	case 3:
+		*Encounter = EnCounter();
+		_Player->P_x -= 5;
+		break;
+	case 4:
+		*Encounter = EnCounter();
+		_Player->P_x += 5;
+		break;
+	case 5:
+		SceneState = Scene_Invetory;
+		break;
+	case 6:
+		SceneState = Scene_Mab;
 		break;
 	case 0:
 		exit(NULL);
@@ -403,11 +439,23 @@ int EnCounter()
 
 void MapScene(OBJECT* _Player)
 {
+	int MabHelper = 0;
 	int P_x = 0;
 	int P_y = 0;
-	/*
-	SetPosition()
-	*/
+	int UI_x = 0;
+	int UI_y = 35;
+
+	P_x = _Player->P_x;
+	P_y = _Player->P_y;
+	SetPosition(P_x, P_y, (char*)"test");
+
+	SetPosition(UI_x, UI_y, (char*)"종료를 원하면 1입력");
+
+	scanf("%d", &MabHelper);
+
+	if (MabHelper)
+		SceneState = Scene_Stage;
+
 }
 
 void TownScene(OBJECT* _Player)
@@ -551,4 +599,41 @@ void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter)
 			}
 		}
 	}
+}
+
+void InventoryScene(OBJECT* _Player)
+{
+	int inventoryHelper = 1;
+	int itemtype = 0;
+
+	if (_Player->Inventory.Item==NULL)
+	{
+		printf_s("아이템이 존재하지 않습니다!!\n이동화면으로 돌아갑니다");
+		inventoryHelper = 0;
+	}
+	while (inventoryHelper)
+	{
+		printf_s("사용할 아이템 선택\n");
+		for (int i = 0; i < sizeof(_Player->Inventory.Item); i++)
+		{
+			printf_s("%d. %s(%d개) ", i, _Player->Inventory.Item[i].Name, _Player->Inventory.Item[i].quantity);
+		}
+		printf_s("0. 종료");
+		scanf("%d", &inventoryHelper);
+
+		_Player->Inventory.Item[inventoryHelper].quantity--;
+		itemtype = _Player->Inventory.Item[inventoryHelper].type;
+
+		switch (itemtype)
+		{
+		case 1:
+			_Player->Info.HP += 10;
+			break;
+		case 2:
+			_Player->Info.MP += 10;
+			break;
+		}
+	}
+
+	SceneState = Scene_Stage;
 }

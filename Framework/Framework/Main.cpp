@@ -605,7 +605,7 @@ void InventoryScene(OBJECT* _Player)
 {
 	int inventoryHelper = 1;
 	int itemtype = 0;
-
+	//null값이 아닌 다른 방법으로 아이템 갯수 확인해야 함
 	if (_Player->Inventory.Item==NULL)
 	{
 		printf_s("아이템이 존재하지 않습니다!!\n이동화면으로 돌아갑니다");

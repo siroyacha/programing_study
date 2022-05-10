@@ -226,13 +226,14 @@ void InitializePlayer(OBJECT* _Player)
 {
 	_Player->Name = SetName();
 
+	_Player->Info.Type = SetPlayerJob();
+
 	_Player->Info.Att = 20;
 	_Player->Info.Def = 10;
 	_Player->Info.EXP = 0;
 	_Player->Info.HP = 100;
 	_Player->Info.MP = 10;
 	_Player->Info.Level = 1;
-	_Player->Info.Type = SetPlayerJob();
 
 	_Player->P_x = 10;
 	_Player->P_y = 15;
@@ -275,8 +276,10 @@ char* SetName()
 {
 	//이름을 입력받을 변수
 	char Buffer[128] = "";
+	int Width = (120 / 2) - (strlen("이름 입력 : "));
+	int Height = 12;
 
-	printf_s("이름 입력 : ");
+	SetPosition(Width, Height, (char*)"이름 입력 : ");
 	scanf("%s", Buffer);
 
 	//입력받은 이름을 동적할당으로 저장할 변수(null값을 포함하기 때문에 크기가 1이 더 크다)
@@ -333,10 +336,14 @@ void HideCursor()
 int SetPlayerJob()
 {
 	int type = 0;
+
+	int Width = (120 / 2) - (strlen("당신의 직업은 무엇입니까?") / 2);
+	int Height = 12;
+
 	system("cls");
-	printf_s("당신의 직업은 무엇입니까?\n");
-	printf_s("1.전사\t 2.궁수\t 3.마법사\n입력 : ");
-	
+	SetPosition(Width-2, Height, (char*)"당신의 직업은 무엇입니까?\n");
+	SetPosition(Width-2, Height + 2, (char*)"1.전사  2.궁수  3.마법사\n");
+	SetPosition(Width + 6, Height + 4, (char*)"입력 : ");
 	scanf_s("%d", &type);
 
 	return type;
@@ -378,6 +385,11 @@ void PrintStatus(OBJECT* _Object)
 void Move(OBJECT* _Player, int* Encounter)
 {
 	int MoveHelper = 0;
+
+	int Width = 0;
+	int Height = 20;
+	SetPosition(Width, Height, (char*)"-------------------------------------------------------------------------------------------------\n");
+	
 	printf_s("이동 하시겠습니까?\n1.상단이동 2.하단이동 3.좌측이동 4.우측이동 5.아이템 사용(확인) 6.지도열기 7.상점 0.종료 \n입력 : ");
 	scanf("%d", &MoveHelper);
 	switch (MoveHelper)

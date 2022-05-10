@@ -36,10 +36,9 @@ const int Scene_Logo = 0;
 const int Scene_Menu = 1;
 const int Scene_Stage = 2;
 const int Scene_Exit = 3;
-const int Scene_Battel = 4;
-const int Scene_Town = 5;
-const int Scene_Mab = 6;
-const int Scene_Invetory = 7;
+const int Scene_Town = 4;
+const int Scene_Mab = 5;
+const int Scene_Invetory = 6;
 
 int SceneState = 0;
 
@@ -49,7 +48,6 @@ int Check = 1;
 //플레이어와 몬스터 등 캐릭터들의 정보를 구성하는 구조체
 typedef struct tagInfo
 {
-	// ** 스탯 타입은 재량(int, float 상관 없음)
 	char* Name;
 	int HP;
 	int MP;
@@ -58,7 +56,8 @@ typedef struct tagInfo
 
 	float Att;
 	float Def;
-	
+	int Int;
+
 	int Level;
 	int Type;
 }INFO;
@@ -75,26 +74,41 @@ typedef struct tagInventory
 	Item Item[10];
 }Inventory;
 
+typedef struct tagSkil
+{
+	char* Name;
+	int Tier;
+
+	float Att;
+
+	int Mp;
+}Skil;
+
 // ** 오브젝트 단위로 묶기 위한 구조체
 typedef struct tagObject
 {
 	char* Name;
 	INFO Info;
 	Inventory Inventory;
+	Skil Skill[3];
 	int P_x;
 	int P_y;
 }OBJECT;
 
 Item HpPotion = { (char*)"HP포션",1,1 };
 Item MpPotion = { (char*)"MP포션",2,1 };
-//필요한 함수들의 전방선언
 
-void SceneManager(OBJECT* _Player, OBJECT* _Enemy);
+Skil Tier1 = { (char*)"1티어 기술",1,5,10 };
+Skil Tier2 = { (char*)"2티어 기술",2,7,15 };
+Skil Tier3 = { (char*)"3티어 기술",3,10,25 };
+
+//필요한 함수들의 전방선언
+void SceneManager(OBJECT* _Player);
 char* SetName();
 
 void LogoScene();
 void MenuScene();
-void StageScene(OBJECT* _Player, OBJECT* _Enemy);
+void StageScene(OBJECT* _Player);
 
 void InitializePlayer(OBJECT* _Player);
 void PlayerScene(OBJECT* _Player);
@@ -115,6 +129,7 @@ void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter);
 void MapScene(OBJECT* _Player);
 void TownScene(OBJECT* _Player);
 void InventoryScene(OBJECT* _Player);
+void HorizenLine();
 
 int main()
 {
@@ -134,9 +149,6 @@ int main()
 	OBJECT* Player = (OBJECT*)malloc(sizeof(OBJECT));
 	InitializePlayer(Player);
 
-	OBJECT* Monster = (OBJECT*)malloc(sizeof(OBJECT));
-	InitializeEnemy(Monster);
-
 	DWORD dwTime = GetTickCount(); // 1/1000 (1000분의 1초)
 	int Delay = 1000;
 
@@ -152,16 +164,15 @@ int main()
 			printf_s("%s\n", Player->Name);
 
 			// ** 게임 루프
-			SceneManager(Player, Monster);
+			SceneManager(Player);
 		}
 	}
 
 	free(Player);
-	free(Monster);
 	return 0;
 }
 
-void SceneManager(OBJECT* _Player, OBJECT* _Enemy)
+void SceneManager(OBJECT* _Player)
 {
 	switch (SceneState)
 	{
@@ -172,13 +183,10 @@ void SceneManager(OBJECT* _Player, OBJECT* _Enemy)
 		MenuScene();
 		break;
 	case Scene_Stage:
-		StageScene(_Player, _Enemy);
+		StageScene(_Player);
 		break;
 	case Scene_Exit:
 		exit(NULL);// ** 프로그램 종료
-		break;
-	case Scene_Battel:
-	//	BattelScene(_Player, _Enemy, Encounter)
 		break;
 	case Scene_Town:
 		TownScene(_Player);
@@ -208,11 +216,14 @@ void LogoScene()
 
 void MenuScene()
 {
-	printf_s("MenuScene\n");
-
-	printf_s("게임을 시작 하시겠습니까?\n1. 시작\n2. 종료\n입력 : ");
-
+	int Width = (120 / 2) - (strlen("게임을 시작 하시겠습니까?") / 2);
+	int Height = 12;
 	int i = 0;
+		
+	SetPosition(Width, Height, (char*)"게임을 시작 하시겠습니까?\n");
+	SetPosition(Width, Height+2, (char*)"1. 시작\n");
+	SetPosition(Width, Height+4, (char*)"2. 종료\n");
+	SetPosition(Width, Height+6, (char*)"입력 : ");
 	scanf("%d", &i);
 
 
@@ -228,15 +239,41 @@ void InitializePlayer(OBJECT* _Player)
 
 	_Player->Info.Type = SetPlayerJob();
 
-	_Player->Info.Att = 20;
-	_Player->Info.Def = 10;
-	_Player->Info.EXP = 0;
-	_Player->Info.HP = 100;
-	_Player->Info.MP = 10;
-	_Player->Info.Level = 1;
-
+	switch (_Player->Info.Type)
+	{
+	case Warrior:
+		_Player->Info.Att = 30;
+		_Player->Info.Def = 20;
+		_Player->Info.EXP = 0;
+		_Player->Info.HP = 250;
+		_Player->Info.MP = 10;
+		_Player->Info.Int = 5 * _Player->Info.Type;
+		_Player->Info.Level = 1;
+		break;
+	case Hunter:
+		_Player->Info.Att = 40;
+		_Player->Info.Def = 10;
+		_Player->Info.EXP = 0;
+		_Player->Info.HP = 350;
+		_Player->Info.MP = 10;
+		_Player->Info.Int = 5 * _Player->Info.Type;
+		_Player->Info.Level = 1;
+		break;
+	case Wizard:
+		_Player->Info.Att = 20;
+		_Player->Info.Def = 10;
+		_Player->Info.EXP = 0;
+		_Player->Info.HP = 200;
+		_Player->Info.MP = 100;
+		_Player->Info.Int = 5 * _Player->Info.Type;
+		_Player->Info.Level = 1;
+		break;
+	}
 	_Player->P_x = 10;
 	_Player->P_y = 15;
+	_Player->Skill[0] = Tier1;
+	_Player->Skill[1] = Tier2;
+	_Player->Skill[2] = Tier3;
 
 	_Player->Inventory.Item[1] = HpPotion;
 	_Player->Inventory.Item[2] = MpPotion;
@@ -255,15 +292,39 @@ void PlayerScene(OBJECT* _Player)
 
 void InitializeEnemy(OBJECT* _Enemy)
 {
-	_Enemy->Name = (char*)"Enemy";
+	srand(GetTickCount());
+	_Enemy->Info.Type = (rand() % 3) + 1;
 
-	_Enemy->Info.Att = 5;
-	_Enemy->Info.Def = 10;
-	_Enemy->Info.EXP = 0;
-	_Enemy->Info.HP = 30;
-	_Enemy->Info.MP = 5;
-	_Enemy->Info.Level = 1;
-	_Enemy->Info.Type = 0;
+	switch (_Enemy->Info.Type)
+	{
+	case 1:
+		_Enemy->Info.Att = 10;
+		_Enemy->Info.Def = 20;
+		_Enemy->Info.EXP = 0;
+		_Enemy->Info.HP = 200;
+		_Enemy->Info.MP = 0;
+		_Enemy->Info.Level = 1;
+		_Enemy->Name = (char*)"Enemy1";
+		break;
+	case 2:
+		_Enemy->Info.Att = 25;
+		_Enemy->Info.Def = 10;
+		_Enemy->Info.EXP = 0;
+		_Enemy->Info.HP = 250;
+		_Enemy->Info.MP = 0;
+		_Enemy->Info.Level = 1;
+		_Enemy->Name = (char*)"Enemy2";
+		break;
+	case 3:
+		_Enemy->Info.Att = 30;
+		_Enemy->Info.Def = 5;
+		_Enemy->Info.EXP = 0;
+		_Enemy->Info.HP = 150;
+		_Enemy->Info.MP = 0;
+		_Enemy->Info.Level = 1;
+		_Enemy->Name = (char*)"Enemy3";
+		break;
+	}
 }
 
 void EnemyScene(OBJECT* _Enemy)
@@ -292,7 +353,7 @@ char* SetName()
 }
 
 //스테이지 신을 출력하는 함수
-void StageScene(OBJECT* _Player, OBJECT* _Enemy)
+void StageScene(OBJECT* _Player)
 {
 	int Encounter = 0;
 	//이동
@@ -301,10 +362,13 @@ void StageScene(OBJECT* _Player, OBJECT* _Enemy)
 	// ** 전투
 	if (Encounter)
 	{
+		OBJECT* Monster = (OBJECT*)malloc(sizeof(OBJECT));
+		InitializeEnemy(Monster);
+
 		system("cls");
 		PlayerScene(_Player);
-		EnemyScene(_Enemy);
-		BattelScene(_Player, _Enemy, &Encounter);
+		EnemyScene(Monster);
+		BattelScene(_Player, Monster, &Encounter);
 	}
 }
 
@@ -386,11 +450,10 @@ void Move(OBJECT* _Player, int* Encounter)
 {
 	int MoveHelper = 0;
 
-	int Width = 0;
-	int Height = 20;
-	SetPosition(Width, Height, (char*)"-------------------------------------------------------------------------------------------------\n");
+	HorizenLine();
 	
-	printf_s("이동 하시겠습니까?\n1.상단이동 2.하단이동 3.좌측이동 4.우측이동 5.아이템 사용(확인) 6.지도열기 7.상점 0.종료 \n입력 : ");
+	printf_s("이동 하시겠습니까?\n\n");
+	printf_s("1.상단이동 2.하단이동 3.좌측이동 4.우측이동 5.아이템 사용(확인) 6.지도열기 7.상점 0.종료 \n입력 : ");;
 	scanf("%d", &MoveHelper);
 	switch (MoveHelper)
 	{
@@ -404,11 +467,11 @@ void Move(OBJECT* _Player, int* Encounter)
 		break;
 	case 3:
 		*Encounter = EnCounter();
-		_Player->P_x -= 5;
+		_Player->P_x -= 3;
 		break;
 	case 4:
 		*Encounter = EnCounter();
-		_Player->P_x += 5;
+		_Player->P_x += 3;
 		break;
 	case 5:
 		SceneState = Scene_Invetory;
@@ -419,14 +482,15 @@ void Move(OBJECT* _Player, int* Encounter)
 	case 7:
 		SceneState = Scene_Town;
 		break;
+	case 8:
+		*Encounter = 1;
+		break;
 	case 0:
 		exit(NULL);
 		break;
 	}
 	if (*Encounter)
 		printf_s("몬스터 조우!\n");
-	else
-		printf_s("이동 성공\n");
 
 	DWORD SetMoveTime = 0;
 	if (SetMoveTime + 3000 < GetTickCount())
@@ -457,21 +521,18 @@ int EnCounter()
 
 void MapScene(OBJECT* _Player)
 {
-	int MabHelper = 0;
+	int MabHelper = 1;
 	int P_x = 0;
 	int P_y = 0;
-	int UI_x = 0;
-	int UI_y = 50;
 
 	P_x = _Player->P_x;
 	P_y = _Player->P_y;
 	SetPosition(P_x, P_y, (char*)"test\n");
-
-	SetPosition(UI_x, UI_y, (char*)"종료를 원하면 1입력\n");
-
+	HorizenLine();
+	printf_s("종료를 원하면 0입력\n");
 	scanf("%d", &MabHelper);
 
-	if (MabHelper)
+	if (MabHelper == 0)
 		SceneState = Scene_Stage;
 
 }
@@ -489,6 +550,8 @@ void TownScene(OBJECT* _Player)
 	Shop->Name = (char*)"상점";
 	Shop->Inventory.Item[0] = _ShopHppotion;
 	Shop->Inventory.Item[1] = _ShopMppotion;
+
+	HorizenLine();
 	while (TownHelper)
 	{
 		printf_s("어떤걸 구매하시겠습니까?\n1.HP포션 2.MP포션\n");
@@ -499,12 +562,18 @@ void TownScene(OBJECT* _Player)
 		case 1:
 			if (Shop->Inventory.Item[0].quantity)
 			{
+				system("cls");
+				HorizenLine();
 				printf_s("몇개 구매하시겠습니까?1~%d\n", Shop->Inventory.Item[0].quantity);
 				scanf_s("%d", &Count);
+
 				_Player->Inventory.Item[1].quantity = _Player->Inventory.Item[1].quantity + Count;
 				Shop->Inventory.Item[0].quantity = Shop->Inventory.Item[0].quantity - Count;
+
+				system("cls");
+				HorizenLine();
 				printf_s("구매 완료!\n");
-				printf_s("현재 보유 갯수 %d개\n", _Player->Inventory.Item[0].quantity);
+				printf_s("현재 보유 갯수 %d개\n\n", _Player->Inventory.Item[1].quantity);
 				break;
 			}
 
@@ -513,11 +582,18 @@ void TownScene(OBJECT* _Player)
 		case 2:
 			if (Shop->Inventory.Item[1].quantity)
 			{
+				system("cls");
+				HorizenLine();
 				printf_s("몇개 구매하시겠습니까?1~%d\n", Shop->Inventory.Item[1].quantity);
 				scanf_s("%d", &Count);
+
 				_Player->Inventory.Item[2].quantity = _Player->Inventory.Item[2].quantity + Count;
 				Shop->Inventory.Item[1].quantity = Shop->Inventory.Item[1].quantity - Count;
-				printf_s("현재 보유 갯수 %d개\n", _Player->Inventory.Item[1].quantity);
+
+				system("cls");
+				HorizenLine();
+				printf_s("구매 완료!\n");
+				printf_s("현재 보유 갯수 %d개\n\n", _Player->Inventory.Item[1].quantity);
 				break;
 			}
 
@@ -549,6 +625,7 @@ void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter)
 	
 	if (*Encounter == 1)
 	{
+	HorizenLine();
 		printf_s("도주하시겠습니까?\n1. 예 2. 아니요\n");
 		scanf("%d", &runcounter);
 
@@ -571,7 +648,9 @@ void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter)
 			PlayerScene(_Player);
 			EnemyScene(_Enemy);
 
-			printf_s("1. 공격 2. 마법 3. 아이템 사용\n");
+			HorizenLine();
+
+			printf_s("1. 공격 2. 마법 3. 아이템 사용\n\n");
 			scanf("%d", &battelhelper);
 
 			switch (battelhelper)
@@ -598,23 +677,92 @@ void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter)
 					_Player->Info.HP -= 1;
 					printf_s("%s의 공격!\n1 데미지!\n", _Enemy->Name);
 				}
-				Sleep(500);
-				if (_Player->Info.HP <= 0 || _Enemy->Info.HP <= 0)
+				break;
+			case 2:
+				if (_Player->Info.MP<_Player->Skill[0].Mp)
 				{
-					printf_s("전투 종료");
-					if (_Player->Info.HP<=0)
-					{
-						printf_s("당신은 사망하셨습니다.\n마을로 돌아갑니다");
-						*Encounter = 0;
-					}
-					else
-					{
-						printf_s("승리!\n");
-						_Player->Info.EXP = _Player->Info.EXP + (_Enemy->Info.Level * 50);
-						*Encounter = 0;
-					}
+					printf_s("MP 부족!!\n");
+					break;
+				}
+				printf_s("어떤 스킬을 사용하시겠습니까?\n");
+
+				for (int i = 0; i < 3; i++)
+					printf_s("%d.%s\n", _Player->Skill[i].Tier, _Player->Skill[i].Name);
+
+				scanf("%d", &battelhelper);
+
+				switch (battelhelper-1)
+				{
+				case 0:
+					_Enemy->Info.HP = _Enemy->Info.HP - (int)(_Player->Skill[0].Att * _Player->Info.Int);
+					_Player->Info.MP = _Player->Info.MP - _Player->Skill[0].Mp;
+					printf_s("%s 사용!\n%d의 데미지!", _Player->Skill[0].Name, (int)(_Player->Skill[0].Att * _Player->Info.Int));
+					break;
+				case 1:
+					_Enemy->Info.HP = _Enemy->Info.HP - (int)(_Player->Skill[1].Att * _Player->Info.Int);
+					_Player->Info.MP = _Player->Info.MP - _Player->Skill[1].Mp;
+					printf_s("%s 사용!\n%d의 데미지!", _Player->Skill[1].Name, (int)(_Player->Skill[1].Att * _Player->Info.Int));
+					break;
+				case 2:
+					_Enemy->Info.HP = _Enemy->Info.HP - (int)(_Player->Skill[2].Att * _Player->Info.Int);
+					_Player->Info.MP = _Player->Info.MP - _Player->Skill[2].Mp;
+					printf_s("%s 사용!\n%d의 데미지!", _Player->Skill[2].Name, (int)(_Player->Skill[2].Att * _Player->Info.Int));
+					break;
+				}
+				if (_Player->Info.MP < 0)
+					_Player->Info.MP = 0;
+				Sleep(500);
+				if (_Enemy->Info.Att > _Player->Info.Def)
+				{
+					_Player->Info.HP = _Player->Info.HP - (int)(_Enemy->Info.Att - _Player->Info.Def);
+					printf_s("%s의 공격!\n%d 데미지!\n", _Enemy->Name, (int)(_Enemy->Info.Att - _Player->Info.Def));
+				}
+				else
+				{
+					_Player->Info.HP -= 1;
+					printf_s("%s의 공격!\n1 데미지!\n", _Enemy->Name);
 				}
 				break;
+			case 3:
+				printf_s("어떤 아이템을 사용하시겠습니까?\n");
+				for (int i = 1; i < 3; i++)
+					printf_s("%d.%s(%d개)",i , _Player->Inventory.Item[i].Name, _Player->Inventory.Item[i].quantity);
+				printf_s("0.사용하지 않음");
+				scanf("%d", &battelhelper);
+				switch (battelhelper)
+				{
+				case 1:
+					_Player->Info.HP += 10;
+					_Player->Inventory.Item[1].quantity--;
+					printf_s("%s사용(남은 개수%d개)", _Player->Inventory.Item[1].Name, _Player->Inventory.Item[1].quantity);
+					break;
+				case 2:
+					_Player->Info.MP += 10;
+					_Player->Inventory.Item[2].quantity--;
+					printf_s("%s사용(남은 개수%d개)", _Player->Inventory.Item[2].Name, _Player->Inventory.Item[2].quantity);
+					break;
+				case 0:
+					printf_s("아이템을 사용하지 않습니다.\n");
+					break;
+				}
+				break;
+			}
+
+			Sleep(500);
+			if (_Player->Info.HP <= 0 || _Enemy->Info.HP <= 0)
+			{
+				printf_s("전투 종료");
+				if (_Player->Info.HP <= 0)
+				{
+					printf_s("당신은 사망하셨습니다.\n마을로 돌아갑니다");
+					*Encounter = 0;
+				}
+				else
+				{
+					printf_s("승리!\n");
+					_Player->Info.EXP = _Player->Info.EXP + (_Enemy->Info.Level * 50);
+					*Encounter = 0;
+				}
 			}
 		}
 	}
@@ -624,17 +772,12 @@ void InventoryScene(OBJECT* _Player)
 {
 	int inventoryHelper = 1;
 	int itemtype = 0;
-	//null값이 아닌 다른 방법으로 아이템 갯수 확인해야 함
-	/*
-	if (_Player->Inventory.Item==NULL)
-	{
-		printf_s("아이템이 존재하지 않습니다!!\n이동화면으로 돌아갑니다");
-		inventoryHelper = 0;
-	}
-	*/
+
+	HorizenLine();
+
 	while (inventoryHelper)
 	{
-		printf_s("사용할 아이템 선택\n");
+		printf_s("사용할 아이템 선택\n\n");
 		for (int i = 1; i < 3; i++)
 		{
 			printf_s("%d. %s(%d개) ", i, _Player->Inventory.Item[i].Name, _Player->Inventory.Item[i].quantity);
@@ -642,9 +785,8 @@ void InventoryScene(OBJECT* _Player)
 		printf_s("0. 종료\n");
 		scanf("%d", &inventoryHelper);
 
-		_Player->Inventory.Item[inventoryHelper].quantity--;
-		itemtype = _Player->Inventory.Item[inventoryHelper].type;
-
+		_Player->Inventory.Item[itemtype].quantity--;
+		itemtype = _Player->Inventory.Item->type;
 		switch (itemtype)
 		{
 		case 1:
@@ -657,4 +799,11 @@ void InventoryScene(OBJECT* _Player)
 	}
 
 	SceneState = Scene_Stage;
+}
+
+void HorizenLine()
+{
+	int Width = 0;
+	int Height = 20;
+	SetPosition(Width, Height, (char*)"------------------------------------------------------------------------------------------------------------------------\n");
 }

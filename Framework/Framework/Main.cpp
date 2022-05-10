@@ -141,7 +141,7 @@ int main()
 	system("mode con:cols=120 lines=30");
 
 	//**콘솔창 이름 설정
-	system("title 전은평 Framework v0.8");
+	system("title 전은평 Framework v0.9");
 
 	// ** 전체 배경색을 변경함.
 	//system("color 70");

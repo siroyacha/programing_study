@@ -130,6 +130,7 @@ void MapScene(OBJECT* _Player);
 void TownScene(OBJECT* _Player);
 void InventoryScene(OBJECT* _Player);
 void HorizenLine();
+void MonsterLevel(int Player_X, int Player_Y, OBJECT* _Enemy);
 
 int main()
 {
@@ -270,7 +271,7 @@ void InitializePlayer(OBJECT* _Player)
 		break;
 	}
 	_Player->P_x = 10;
-	_Player->P_y = 15;
+	_Player->P_y = 18;
 	_Player->Skill[0] = Tier1;
 	_Player->Skill[1] = Tier2;
 	_Player->Skill[2] = Tier3;
@@ -286,7 +287,7 @@ void PlayerScene(OBJECT* _Player)
 	if (_Player->Info.EXP >= 100)
 	{
 		LevelUp(_Player);
-		_Player->Info.EXP = 0;
+		_Player->Info.EXP = _Player->Info.EXP % 100;
 	}
 }
 
@@ -364,11 +365,14 @@ void StageScene(OBJECT* _Player)
 	{
 		OBJECT* Monster = (OBJECT*)malloc(sizeof(OBJECT));
 		InitializeEnemy(Monster);
+		MonsterLevel(_Player->P_x, _Player->P_y, Monster);
 
 		system("cls");
 		PlayerScene(_Player);
 		EnemyScene(Monster);
 		BattelScene(_Player, Monster, &Encounter);
+
+		free(Monster);
 	}
 }
 
@@ -415,27 +419,34 @@ int SetPlayerJob()
 
 void LevelUp(OBJECT* _Player)
 {
-	_Player->Info.Level++;
-	switch (_Player->Info.Type)
+	int LevelUpHelper = 0;
+	
+	LevelUpHelper = _Player->Info.EXP / 100;
+
+	_Player->Info.Level = _Player->Info.Level + LevelUpHelper;
+	for (int i = 0; i < LevelUpHelper; i++)
 	{
-	case Warrior:
-		_Player->Info.Att += 10;
-		_Player->Info.Def += 5;
-		_Player->Info.HP += 100;
-		_Player->Info.MP += 50;
-		break;
-	case Hunter:
-		_Player->Info.Att += 10;
-		_Player->Info.Def += 5;
-		_Player->Info.HP += 100;
-		_Player->Info.MP += 50;
-		break;
-	case Wizard:
-		_Player->Info.Att += 10;
-		_Player->Info.Def += 5;
-		_Player->Info.HP += 100;
-		_Player->Info.MP += 50;
-		break;
+		switch (_Player->Info.Type)
+		{
+		case Warrior:
+			_Player->Info.Att += 10;
+			_Player->Info.Def += 5;
+			_Player->Info.HP += 100;
+			_Player->Info.MP += 50;
+			break;
+		case Hunter:
+			_Player->Info.Att += 10;
+			_Player->Info.Def += 5;
+			_Player->Info.HP += 100;
+			_Player->Info.MP += 50;
+			break;
+		case Wizard:
+			_Player->Info.Att += 10;
+			_Player->Info.Def += 5;
+			_Player->Info.HP += 100;
+			_Player->Info.MP += 50;
+			break;
+		}
 	}
 }
 
@@ -806,4 +817,53 @@ void HorizenLine()
 	int Width = 0;
 	int Height = 20;
 	SetPosition(Width, Height, (char*)"------------------------------------------------------------------------------------------------------------------------\n");
+}
+
+void MonsterLevel(int Player_X, int Player_Y, OBJECT* _Enemy)
+{
+	int Levelcounter = 0;
+
+	srand(GetTickCount());
+
+	if (Player_X < 20 || Player_Y > 15)
+	{
+		Levelcounter = (rand() % 3) + 1;
+		_Enemy->Info.EXP = Levelcounter * 100;
+		LevelUp(_Enemy);
+		for (int i = 0; i < Levelcounter; i++)
+		{
+			_Enemy->Info.Att -= 10;
+			_Enemy->Info.Def -= 10;
+			_Enemy->Info.HP -= 50;
+			_Enemy->Info.MP -= 50;
+		}
+	}
+
+	else if (Player_X < 60 || Player_Y > 8)
+	{
+		Levelcounter = (rand() % 3) + 4;
+		_Enemy->Info.EXP = Levelcounter * 100;
+		LevelUp(_Enemy);
+		for (int i = 0; i < Levelcounter; i++)
+		{
+			_Enemy->Info.Att -= 10;
+			_Enemy->Info.Def -= 10;
+			_Enemy->Info.HP -= 50;
+			_Enemy->Info.MP -= 50;
+		}
+	}
+
+	else if (Player_X < 110 || Player_Y > 3)
+	{
+		Levelcounter = (rand() % 3) + 7;
+		_Enemy->Info.EXP = Levelcounter * 100;
+		LevelUp(_Enemy);
+		for (int i = 0; i < Levelcounter; i++)
+		{
+			_Enemy->Info.Att -= 10;
+			_Enemy->Info.Def -= 10;
+			_Enemy->Info.HP -= 50;
+			_Enemy->Info.MP -= 50;
+		}
+	}
 }

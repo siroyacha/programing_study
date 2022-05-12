@@ -97,10 +97,11 @@ typedef struct tagObject
 
 Item HpPotion = { (char*)"HP포션",1,1 };
 Item MpPotion = { (char*)"MP포션",2,1 };
+Item Gold = { (char*)"보유골드",0,100 };
 
-Skil Tier1 = { (char*)"1티어 기술",1,5,10 };
-Skil Tier2 = { (char*)"2티어 기술",2,7,15 };
-Skil Tier3 = { (char*)"3티어 기술",3,10,25 };
+Skil Tier1 = { (char*)"1티어 기술",1,7,10 };
+Skil Tier2 = { (char*)"2티어 기술",2,10,15 };
+Skil Tier3 = { (char*)"3티어 기술",3,12,25 };
 
 //필요한 함수들의 전방선언
 void SceneManager(OBJECT* _Player);
@@ -134,7 +135,6 @@ void MonsterLevel(int Player_X, int Player_Y, OBJECT* _Enemy);
 
 int main()
 {
-
 	// ** 커서를 안보이게 함
 	HideCursor();
 
@@ -247,7 +247,7 @@ void InitializePlayer(OBJECT* _Player)
 		_Player->Info.Def = 20;
 		_Player->Info.EXP = 0;
 		_Player->Info.HP = 250;
-		_Player->Info.MP = 10;
+		_Player->Info.MP = 50;
 		_Player->Info.Int = 5 * _Player->Info.Type;
 		_Player->Info.Level = 1;
 		break;
@@ -255,8 +255,8 @@ void InitializePlayer(OBJECT* _Player)
 		_Player->Info.Att = 40;
 		_Player->Info.Def = 10;
 		_Player->Info.EXP = 0;
-		_Player->Info.HP = 350;
-		_Player->Info.MP = 10;
+		_Player->Info.HP = 250;
+		_Player->Info.MP = 25;
 		_Player->Info.Int = 5 * _Player->Info.Type;
 		_Player->Info.Level = 1;
 		break;
@@ -276,6 +276,7 @@ void InitializePlayer(OBJECT* _Player)
 	_Player->Skill[1] = Tier2;
 	_Player->Skill[2] = Tier3;
 
+	_Player->Inventory.Item[0] = Gold;
 	_Player->Inventory.Item[1] = HpPotion;
 	_Player->Inventory.Item[2] = MpPotion;
 }
@@ -283,12 +284,6 @@ void InitializePlayer(OBJECT* _Player)
 void PlayerScene(OBJECT* _Player)
 {
 	PrintStatus(_Player);
-
-	if (_Player->Info.EXP >= 100)
-	{
-		LevelUp(_Player);
-		_Player->Info.EXP = _Player->Info.EXP % 100;
-	}
 }
 
 void InitializeEnemy(OBJECT* _Enemy)
@@ -300,7 +295,7 @@ void InitializeEnemy(OBJECT* _Enemy)
 	{
 	case 1:
 		_Enemy->Info.Att = 10;
-		_Enemy->Info.Def = 20;
+		_Enemy->Info.Def = 15;
 		_Enemy->Info.EXP = 0;
 		_Enemy->Info.HP = 200;
 		_Enemy->Info.MP = 0;
@@ -308,7 +303,7 @@ void InitializeEnemy(OBJECT* _Enemy)
 		_Enemy->Name = (char*)"Enemy1";
 		break;
 	case 2:
-		_Enemy->Info.Att = 25;
+		_Enemy->Info.Att = 15;
 		_Enemy->Info.Def = 10;
 		_Enemy->Info.EXP = 0;
 		_Enemy->Info.HP = 250;
@@ -317,7 +312,7 @@ void InitializeEnemy(OBJECT* _Enemy)
 		_Enemy->Name = (char*)"Enemy2";
 		break;
 	case 3:
-		_Enemy->Info.Att = 30;
+		_Enemy->Info.Att = 25;
 		_Enemy->Info.Def = 5;
 		_Enemy->Info.EXP = 0;
 		_Enemy->Info.HP = 150;
@@ -326,6 +321,7 @@ void InitializeEnemy(OBJECT* _Enemy)
 		_Enemy->Name = (char*)"Enemy3";
 		break;
 	}
+	_Enemy->P_y = 21;
 }
 
 void EnemyScene(OBJECT* _Enemy)
@@ -420,34 +416,46 @@ int SetPlayerJob()
 void LevelUp(OBJECT* _Player)
 {
 	int LevelUpHelper = 0;
-	
+	int Width = (120 / 2) - (strlen("레벨 업!") / 2);
+	int Height = 15;
+
 	LevelUpHelper = _Player->Info.EXP / 100;
 
-	_Player->Info.Level = _Player->Info.Level + LevelUpHelper;
-	for (int i = 0; i < LevelUpHelper; i++)
+	if (_Player->P_y<20)
 	{
-		switch (_Player->Info.Type)
-		{
-		case Warrior:
-			_Player->Info.Att += 10;
-			_Player->Info.Def += 5;
-			_Player->Info.HP += 100;
-			_Player->Info.MP += 50;
-			break;
-		case Hunter:
-			_Player->Info.Att += 10;
-			_Player->Info.Def += 5;
-			_Player->Info.HP += 100;
-			_Player->Info.MP += 50;
-			break;
-		case Wizard:
-			_Player->Info.Att += 10;
-			_Player->Info.Def += 5;
-			_Player->Info.HP += 100;
-			_Player->Info.MP += 50;
-			break;
-		}
+		system("cls");
+		SetPosition(Width, Height, (char*)"레벨 업!\n", 11);
+		Sleep(1000);
+		SetPosition(Width, Height, (char*)" ", 15);
 	}
+
+	_Player->Info.Level = _Player->Info.Level + LevelUpHelper;
+
+	switch (_Player->Info.Type)
+	{
+	case Warrior:
+		_Player->Info.Att = _Player->Info.Att + ((_Player->Info.Level - 1) * 15);
+		_Player->Info.Def = _Player->Info.Def + ((_Player->Info.Level - 1) * 20);
+		_Player->Info.HP = 250 + ((_Player->Info.Level - 1) * 150);
+		_Player->Info.MP = 50 + ((_Player->Info.Level - 1) * 100);
+		_Player->Info.Int = _Player->Info.Int + ((_Player->Info.Level - 1) * 2);
+		break;
+	case Hunter:
+		_Player->Info.Att = _Player->Info.Att + ((_Player->Info.Level - 1) * 20);
+		_Player->Info.Def = _Player->Info.Def + ((_Player->Info.Level - 1) * 5);
+		_Player->Info.HP = 250 + ((_Player->Info.Level - 1) * 100);
+		_Player->Info.MP = 25 + ((_Player->Info.Level - 1) * 50);
+		_Player->Info.Int = _Player->Info.Int + ((_Player->Info.Level - 1) * 1);
+		break;
+	case Wizard:
+		_Player->Info.Att = _Player->Info.Att + ((_Player->Info.Level - 1) * 10);
+		_Player->Info.Def = _Player->Info.Def + ((_Player->Info.Level - 1) * 10);
+		_Player->Info.HP = 200 + ((_Player->Info.Level - 1) * 100);
+		_Player->Info.MP = 100 + ((_Player->Info.Level - 1) * 150);
+		_Player->Info.Int = _Player->Info.Int + ((_Player->Info.Level - 1) * 3);
+		break;
+	}
+	_Player->Info.EXP = _Player->Info.EXP % 100;
 }
 
 void PrintStatus(OBJECT* _Object)
@@ -460,7 +468,8 @@ void PrintStatus(OBJECT* _Object)
 void Move(OBJECT* _Player, int* Encounter)
 {
 	int MoveHelper = 0;
-
+	int Width = (120 / 2) - (strlen("몬스터 조우!") / 2);
+	int Height = 15;
 	HorizenLine();
 	
 	printf_s("이동 하시겠습니까?\n\n");
@@ -499,9 +508,13 @@ void Move(OBJECT* _Player, int* Encounter)
 	case 0:
 		exit(NULL);
 		break;
+	}	
+	if (*Encounter) {
+		system("cls");
+		SetPosition(Width, Height, (char*)"몬스터 조우!\n", 4);
+		Sleep(1000);
+		SetPosition(Width, Height, (char*)" ", 15);
 	}
-	if (*Encounter)
-		printf_s("몬스터 조우!\n");
 
 	DWORD SetMoveTime = 0;
 	if (SetMoveTime + 3000 < GetTickCount())
@@ -545,7 +558,6 @@ void MapScene(OBJECT* _Player)
 
 	if (MabHelper == 0)
 		SceneState = Scene_Stage;
-
 }
 
 void TownScene(OBJECT* _Player)
@@ -563,9 +575,16 @@ void TownScene(OBJECT* _Player)
 	Shop->Inventory.Item[1] = _ShopMppotion;
 
 	HorizenLine();
+	if (_Player->Inventory.Item[0].quantity < 100)
+	{
+		printf_s("금액부족!\n상점에서 나갑니다");
+
+		SceneState = 2;
+		TownHelper = 0;
+	}
 	while (TownHelper)
 	{
-		printf_s("어떤걸 구매하시겠습니까?\n1.HP포션 2.MP포션\n");
+		printf_s("어떤걸 구매하시겠습니까?\n1.HP포션(100골드) 2.MP포션(150골드)\n");
 		scanf_s("%d", &TownHelper);
 
 		switch (TownHelper)
@@ -578,6 +597,14 @@ void TownScene(OBJECT* _Player)
 				printf_s("몇개 구매하시겠습니까?1~%d\n", Shop->Inventory.Item[0].quantity);
 				scanf_s("%d", &Count);
 
+				if (_Player->Inventory.Item[0].quantity < (100 * Count))
+				{
+					printf_s("금액 부족!\n");
+
+					break;
+				}
+
+				_Player->Inventory.Item[0].quantity = _Player->Inventory.Item[0].quantity - (100 * Count);
 				_Player->Inventory.Item[1].quantity = _Player->Inventory.Item[1].quantity + Count;
 				Shop->Inventory.Item[0].quantity = Shop->Inventory.Item[0].quantity - Count;
 
@@ -598,13 +625,21 @@ void TownScene(OBJECT* _Player)
 				printf_s("몇개 구매하시겠습니까?1~%d\n", Shop->Inventory.Item[1].quantity);
 				scanf_s("%d", &Count);
 
+				if (_Player->Inventory.Item[0].quantity < (150 * Count))
+				{
+					printf_s("금액 부족!\n");
+
+					break;
+				}
+				
+				_Player->Inventory.Item[0].quantity = _Player->Inventory.Item[0].quantity - (150 * Count);
 				_Player->Inventory.Item[2].quantity = _Player->Inventory.Item[2].quantity + Count;
-				Shop->Inventory.Item[1].quantity = Shop->Inventory.Item[1].quantity - Count;
+				Shop->Inventory.Item[2].quantity = Shop->Inventory.Item[2].quantity - Count;
 
 				system("cls");
 				HorizenLine();
 				printf_s("구매 완료!\n");
-				printf_s("현재 보유 갯수 %d개\n\n", _Player->Inventory.Item[1].quantity);
+				printf_s("현재 보유 갯수 %d개\n\n", _Player->Inventory.Item[2].quantity);
 				break;
 			}
 
@@ -644,6 +679,7 @@ void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter)
 		{
 			if (runchance>=30)
 			{
+				SetPosition(119, 29, (char*)" ", 11);
 				printf_s("도주 성공!\n");
 				*Encounter = 0;				
 			}
@@ -710,11 +746,21 @@ void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter)
 					printf_s("%s 사용!\n%d의 데미지!", _Player->Skill[0].Name, (int)(_Player->Skill[0].Att * _Player->Info.Int));
 					break;
 				case 1:
+					if (_Player->Info.MP < _Player->Skill[1].Mp)
+					{
+						printf_s("MP 부족!!\n");
+						break;
+					}
 					_Enemy->Info.HP = _Enemy->Info.HP - (int)(_Player->Skill[1].Att * _Player->Info.Int);
 					_Player->Info.MP = _Player->Info.MP - _Player->Skill[1].Mp;
 					printf_s("%s 사용!\n%d의 데미지!", _Player->Skill[1].Name, (int)(_Player->Skill[1].Att * _Player->Info.Int));
 					break;
 				case 2:
+					if (_Player->Info.MP < _Player->Skill[2].Mp)
+					{
+						printf_s("MP 부족!!\n");
+						break;
+					}
 					_Enemy->Info.HP = _Enemy->Info.HP - (int)(_Player->Skill[2].Att * _Player->Info.Int);
 					_Player->Info.MP = _Player->Info.MP - _Player->Skill[2].Mp;
 					printf_s("%s 사용!\n%d의 데미지!", _Player->Skill[2].Name, (int)(_Player->Skill[2].Att * _Player->Info.Int));
@@ -736,20 +782,50 @@ void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter)
 				break;
 			case 3:
 				printf_s("어떤 아이템을 사용하시겠습니까?\n");
-				for (int i = 1; i < 3; i++)
-					printf_s("%d.%s(%d개)",i , _Player->Inventory.Item[i].Name, _Player->Inventory.Item[i].quantity);
+				for (int i = 0; i < 3; i++)
+					printf_s("%d.%s(%d개)",0 , _Player->Inventory.Item[i].Name, _Player->Inventory.Item[i].quantity);
 				printf_s("0.사용하지 않음");
 				scanf("%d", &battelhelper);
 				switch (battelhelper)
 				{
 				case 1:
-					_Player->Info.HP += 10;
+					_Player->Info.HP += 50;
 					_Player->Inventory.Item[1].quantity--;
+					switch (_Player->Info.Type)
+					{
+					case Warrior:
+						if (_Player->Info.HP > 250 + ((_Player->Info.Level - 1) * 150))
+							_Player->Info.HP = 250 + ((_Player->Info.Level - 1) * 150);
+						break;
+					case Hunter:
+						if (_Player->Info.HP > 250 + ((_Player->Info.Level - 1) * 100))
+							_Player->Info.HP = 250 + ((_Player->Info.Level - 1) * 100);
+						break;
+					case Wizard:
+						if (_Player->Info.HP > 200 + ((_Player->Info.Level - 1) * 100))
+							_Player->Info.HP = 200 + ((_Player->Info.Level - 1) * 100);
+						break;
+					}
 					printf_s("%s사용(남은 개수%d개)", _Player->Inventory.Item[1].Name, _Player->Inventory.Item[1].quantity);
 					break;
 				case 2:
-					_Player->Info.MP += 10;
+					_Player->Info.MP += 25;
 					_Player->Inventory.Item[2].quantity--;
+					switch (_Player->Info.Type)
+					{
+					case Warrior:
+						if (_Player->Info.MP > 50 + ((_Player->Info.Level - 1) * 100))
+							_Player->Info.MP = 50 + ((_Player->Info.Level - 1) * 100);
+						break;
+					case Hunter:
+						if (_Player->Info.MP > 25 + ((_Player->Info.Level - 1) * 50))
+							_Player->Info.MP = 25 + ((_Player->Info.Level - 1) * 50);
+						break;
+					case Wizard:
+						if (_Player->Info.MP > 100 + ((_Player->Info.Level - 1) * 150))
+							_Player->Info.MP = 100 + ((_Player->Info.Level - 1) * 150);
+						break;
+					}
 					printf_s("%s사용(남은 개수%d개)", _Player->Inventory.Item[2].Name, _Player->Inventory.Item[2].quantity);
 					break;
 				case 0:
@@ -771,7 +847,12 @@ void BattelScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter)
 				else
 				{
 					printf_s("승리!\n");
-					_Player->Info.EXP = _Player->Info.EXP + (_Enemy->Info.Level * 50);
+					_Player->Info.EXP = _Player->Info.EXP + (_Enemy->Info.Level * 10);
+					_Player->Inventory.Item[0].quantity = _Player->Inventory.Item[0].quantity + (_Enemy->Info.Level * 100);
+					if (_Player->Info.EXP >= 100)
+					{
+						LevelUp(_Player);
+					}
 					*Encounter = 0;
 				}
 			}
@@ -789,22 +870,55 @@ void InventoryScene(OBJECT* _Player)
 	while (inventoryHelper)
 	{
 		printf_s("사용할 아이템 선택\n\n");
-		for (int i = 1; i < 3; i++)
+		for (int i = 0; i < 3; i++)
 		{
 			printf_s("%d. %s(%d개) ", i, _Player->Inventory.Item[i].Name, _Player->Inventory.Item[i].quantity);
 		}
 		printf_s("0. 종료\n");
 		scanf("%d", &inventoryHelper);
-
+		if (_Player->Inventory.Item[itemtype].type==0)
+		{
+			_Player->Inventory.Item[itemtype].quantity++;
+		}
 		_Player->Inventory.Item[itemtype].quantity--;
 		itemtype = _Player->Inventory.Item->type;
 		switch (itemtype)
 		{
 		case 1:
-			_Player->Info.HP += 10;
+			_Player->Info.HP += 50;
+			switch (_Player->Info.Type)
+			{
+			case Warrior:
+				if (_Player->Info.HP > 250 + ((_Player->Info.Level - 1) * 150))
+					_Player->Info.HP = 250 + ((_Player->Info.Level - 1) * 150);
+				break;
+			case Hunter:
+				if (_Player->Info.HP > 250 + ((_Player->Info.Level - 1) * 100))
+					_Player->Info.HP = 250 + ((_Player->Info.Level - 1) * 100);
+				break;
+			case Wizard:
+				if (_Player->Info.HP > 200 + ((_Player->Info.Level - 1) * 100))
+					_Player->Info.HP = 200 + ((_Player->Info.Level - 1) * 100);
+				break;
+			}
 			break;
 		case 2:
-			_Player->Info.MP += 10;
+			_Player->Info.MP += 25;
+			switch (_Player->Info.Type)
+			{
+			case Warrior:
+				if (_Player->Info.MP > 50 + ((_Player->Info.Level - 1) * 100))
+					_Player->Info.MP = 50 + ((_Player->Info.Level - 1) * 100);
+				break;
+			case Hunter:
+				if (_Player->Info.MP > 25 + ((_Player->Info.Level - 1) * 50))
+					_Player->Info.MP = 25 + ((_Player->Info.Level - 1) * 50);
+				break;
+			case Wizard:
+				if (_Player->Info.MP > 100 + ((_Player->Info.Level - 1) * 150))
+					_Player->Info.MP = 100 + ((_Player->Info.Level - 1) * 150);
+				break;
+			}
 			break;
 		}
 	}
@@ -825,44 +939,54 @@ void MonsterLevel(int Player_X, int Player_Y, OBJECT* _Enemy)
 
 	srand(GetTickCount());
 
-	if (Player_X < 20 || Player_Y > 15)
+	if (Player_X < 20 || Player_Y > 16)
+	{
+		for (int i = 0; i < Levelcounter; i++)
+		{
+			_Enemy->Info.Att -= 5;
+			_Enemy->Info.Def -= 5;
+			_Enemy->Info.HP -= 25;
+			_Enemy->Info.MP -= 50;
+		}
+	}
+	else if (Player_X < 30 || Player_Y > 15)
 	{
 		Levelcounter = (rand() % 3) + 1;
 		_Enemy->Info.EXP = Levelcounter * 100;
 		LevelUp(_Enemy);
 		for (int i = 0; i < Levelcounter; i++)
 		{
-			_Enemy->Info.Att -= 10;
-			_Enemy->Info.Def -= 10;
-			_Enemy->Info.HP -= 50;
+			_Enemy->Info.Att -= 5;
+			_Enemy->Info.Def -= 5;
+			_Enemy->Info.HP -= 25;
 			_Enemy->Info.MP -= 50;
 		}
 	}
 
-	else if (Player_X < 60 || Player_Y > 8)
+	else if (Player_X < 60 || Player_Y > 6)
 	{
 		Levelcounter = (rand() % 3) + 4;
 		_Enemy->Info.EXP = Levelcounter * 100;
 		LevelUp(_Enemy);
 		for (int i = 0; i < Levelcounter; i++)
 		{
-			_Enemy->Info.Att -= 10;
-			_Enemy->Info.Def -= 10;
-			_Enemy->Info.HP -= 50;
+			_Enemy->Info.Att -= 5;
+			_Enemy->Info.Def -= 5;
+			_Enemy->Info.HP -= 25;
 			_Enemy->Info.MP -= 50;
 		}
 	}
 
-	else if (Player_X < 110 || Player_Y > 3)
+	else if (Player_X < 120 && Player_Y > 0)
 	{
 		Levelcounter = (rand() % 3) + 7;
 		_Enemy->Info.EXP = Levelcounter * 100;
 		LevelUp(_Enemy);
 		for (int i = 0; i < Levelcounter; i++)
 		{
-			_Enemy->Info.Att -= 10;
-			_Enemy->Info.Def -= 10;
-			_Enemy->Info.HP -= 50;
+			_Enemy->Info.Att -= 5;
+			_Enemy->Info.Def -= 5;
+			_Enemy->Info.HP -= 25;
 			_Enemy->Info.MP -= 50;
 		}
 	}

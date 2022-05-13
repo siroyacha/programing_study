@@ -513,7 +513,7 @@ void Move(OBJECT* _Player, int* Encounter)
 		*Encounter = 1;
 		break;
 	case 0:
-		exit(NULL);
+		SceneState = Scene_Menu;
 		break;
 	}	
 

@@ -5,8 +5,6 @@
 #include <malloc.h>
 #include <Windows.h>
 
-// 16일 학원 출발 '전'까지 영상 보내기
-
 const int Warrior = 1;
 const int Hunter = 2;
 const int Wizard = 3;
@@ -19,8 +17,12 @@ const int Scene_Town = 4;
 const int Scene_Mab = 5;
 const int Scene_Invetory = 6;
 
-const int Town_X = 0;
-const int Town_y = 0;
+const int Town_X = 30;
+const int Town_y = 15;
+const int Town_X2 = 60;
+const int Town_y2 = 12;
+const int Town_X3 = 105;
+const int Town_y3 = 6;
 
 const int UI_Y = 11;
 
@@ -119,7 +121,7 @@ int main()
 
 	system("mode con:cols=120 lines=30");
 
-	system("title 전은평 Framework v0.9");
+	system("title 전은평 Framework v1.0");
 
 	// ** 전체 배경색을 변경함.
 	//system("color 70");
@@ -138,8 +140,6 @@ int main()
 		{
 			dwTime = GetTickCount();
 			system("cls");
-
-			printf_s("%s\n", Player->Name);
 
 			SceneManager(Player);
 		}
@@ -183,9 +183,9 @@ void LogoScene()
 	int Height = 10;
 
 	SetPosition(Width, Height + 1, (char*)"   __         _____    ");
-	SetPosition(Width, Height + 2, (char*)"  / /  ___   / ___/__  ");
-	SetPosition(Width, Height + 3, (char*)" / /__/ _ \\/ (_ / _ \\ ");
-	SetPosition(Width, Height + 4, (char*)"/____/\\___/\\___/\\___/ ");
+	SetPosition(Width, Height + 2, (char*)"  / /  ___   / ___/ __ ");
+	SetPosition(Width, Height + 3, (char*)" / /__/ _ A / (_ / /_ A ");
+	SetPosition(Width, Height + 4, (char*)"/____/ A___/A___/ A___/ ");
 
 	Sleep(1000);
 	SceneState++;
@@ -246,7 +246,7 @@ void InitializePlayer(OBJECT* _Player)
 		_Player->Info.Level = 1;
 		break;
 	}
-	_Player->P_x = 5;
+	_Player->P_x = 3;
 	_Player->P_y = 18;
 	_Player->Skill[0] = Tier1;
 	_Player->Skill[1] = Tier2;
@@ -441,9 +441,21 @@ void LevelUp(OBJECT* _Player)
 
 void PrintStatus(OBJECT* _Object)
 {
-	printf_s("%s\n", _Object->Name);
-	printf_s("레벨 : %02d\n직업 : %d\n체력 : %d\n마나 : %d\n공격력 : %0.2f\n방어력 : %0.2f\n경험치 : %03d\n",
-		_Object->Info.Level,_Object->Info.Type, _Object->Info.HP, _Object->Info.MP, _Object->Info.Att, _Object->Info.Def, _Object->Info.EXP);
+	printf_s("%s\n레벨 : %02d\n", _Object->Name, _Object->Info.Level);
+	switch (_Object->Info.Type)
+	{
+	case Warrior:
+		printf_s("직업 : 전사\n");
+		break;
+	case Hunter:
+		printf_s("직업 : 궁수\n");
+		break;
+	case Wizard:
+		printf_s("직업 : 마법사\n");
+		break;
+	}
+	printf_s("체력 : %d\n마나 : %d\n공격력 : %0.2f\n방어력 : %0.2f\n경험치 : %03d\n",
+		_Object->Info.HP, _Object->Info.MP, _Object->Info.Att, _Object->Info.Def, _Object->Info.EXP);
 }
 
 void Move(OBJECT* _Player, int* Encounter)
@@ -490,7 +502,7 @@ void Move(OBJECT* _Player, int* Encounter)
 		_Player->P_x -= 3;
 		break;
 	case 4:
-		if (_Player->P_x <= 120)
+		if (_Player->P_x >= 120)
 		{
 			*Encounter = EnCounter();
 			_Player->P_x = 119;
@@ -542,7 +554,6 @@ void Move(OBJECT* _Player, int* Encounter)
 
 		Check = 0;
 	}
-		SetPosition(Width, UI_Y, (char*)"이동모션/발자국");
 }
 
 int EnCounter()
@@ -552,7 +563,7 @@ int EnCounter()
 
 	_Encounter = (rand() % 100) + 1;
 
-	if (_Encounter <= 80)
+	if (_Encounter <= 65)
 		return 0;
 	if (_Encounter <= 5)
 		return 2;
@@ -565,22 +576,36 @@ void MapScene(OBJECT* _Player)
 	int MabHelper = 1;
 	int P_x = 0;
 	int P_y = 0;
-	int Map_X = 0;
+	int Map_X = 90;
 	int Map_Y = 0;
-	int MapUI_X = (120 / 2) - (strlen("종료를 원하면 0입력") / 2);
+	int MapUI_X = (120 / 2) - (strlen("종료를 원하면 0입력 ") / 2);
 
 	P_x = _Player->P_x;
 	P_y = _Player->P_y;
 
-	/*
-	지도 들어갈 공간
-	SetPosition(Map_X, Map_Y, (char*)"test\n");
+	SetPosition(Map_X, Map_Y, (char*)"          /A         ");
+	SetPosition(Map_X, Map_Y + 1, (char*)"         /**A            ");
+	SetPosition(Map_X, Map_Y + 2, (char*)"        /****A   /A      ");
+	SetPosition(Map_X, Map_Y + 3, (char*)"       /      A /**A     ");
+	SetPosition(Map_X, Map_Y + 4, (char*)"      /  /A    /    A    ",6);
+	SetPosition(Map_X, Map_Y + 5, (char*)"     /  /  A  /      A   ",6);
+	SetPosition(Map_X, Map_Y + 6, (char*)"    /  /    A/ /A     A  ",6);
+	SetPosition(Map_X, Map_Y + 7, (char*)"   /  /      A/  A/A   A ",6);
+	SetPosition(Map_X, Map_Y + 8, (char*)"__/__/_______/___/__A___A",6);
 
+	SetPosition(Map_X - 60, Map_Y + 10, (char*)"         /A          /A          /A          /A     ", 10);
+	SetPosition(Map_X - 60, Map_Y + 11, (char*)"        /  A        /  A        /  A        /  A    ", 2);
+	SetPosition(Map_X - 60, Map_Y + 12, (char*)"       /    A      /    A      /    A      /    A   ", 2);
+	SetPosition(Map_X - 60, Map_Y + 13, (char*)"      /      A    /      A    /      A    /      A  ", 2);
+	SetPosition(Map_X - 60, Map_Y + 14, (char*)"     /________A  /________A  /________A  /________A ", 2);
+	SetPosition(Map_X - 60, Map_Y + 15, (char*)"        i  i        i  i        i  i        i  i    ", 6);
+	SetPosition(Map_X - 60, Map_Y + 16, (char*)"        I__I        I__I        I__I        I__I    ", 6);
 
+	SetPosition(P_x, P_y, (char*)"Player");
+	SetPosition(Town_X, Town_y, (char*)"T",11);
+	SetPosition(Town_X2, Town_y2, (char*)"T",11);
+	SetPosition(Town_X3, Town_y3, (char*)"T",11);
 
-
-	*/
-	SetPosition(P_x, P_y, (char*)"test");
 
 	HorizenLine();
 	SetPosition(MapUI_X, 21, (char*)"종료를 원하면 0입력");
@@ -693,6 +718,11 @@ void TownScene(OBJECT* _Player)
 
 			break;
 		}
+		Sleep(1000);
+
+		system("cls");
+		HorizenLine();
+
 		SetPosition(TownUI_X+1, 21, (char*)"계속 구매하시겠습니까?");
 		SetPosition(TownUI_X + 5, 23, (char*)"1.예 2.아니요");
 
@@ -805,19 +835,22 @@ void BattleScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter)
 				}
 				break;
 			case 2:
+				system("cls");
+
 				if (_Player->Info.MP<_Player->Skill[0].Mp)
 				{
 					SetPosition(BattleUI_X + 7, 15, (char*)"MP 부족!!", 12);
 					SetPosition(BattleUI_X, 29, (char*)" ", 15);
 					break;
 				}
+				HorizenLine();
 				SetPosition(SkilUI_X, 21, (char*)"어떤 스킬을 사용하시겠습니까?");
 				SetPosition(SkilUI_X - 7, 23, (char*)" ");
 
 				for (int i = 0; i < 3; i++)
 					printf_s("%d.%s\t", _Player->Skill[i].Tier, _Player->Skill[i].Name);
 
-				SetPosition(SkilUI_X + 11, 25, (char*)" 1");
+				SetPosition(SkilUI_X + 11, 25, (char*)" ");
 				scanf("%d", &Battlehelper);
 
 				system("cls");
@@ -870,17 +903,17 @@ void BattleScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter)
 				if (_Enemy->Info.Att > _Player->Info.Def)
 				{
 					_Player->Info.HP = _Player->Info.HP - (int)(_Enemy->Info.Att - _Player->Info.Def);
-					SetPosition(BattleUI_X + 4, 15, (char*)" ");
+					SetPosition(BattleUI_X + 7, 15, (char*)" ");
 					printf_s("%s의 공격!", _Enemy->Name);
-					SetPosition(BattleUI_X + 6, 16, (char*)" ");
+					SetPosition(BattleUI_X + 8, 16, (char*)" ");
 					printf_s("%d 데미지!", (int)(_Enemy->Info.Att - _Player->Info.Def));
 				}
 				else
 				{
 					_Player->Info.HP -= 1;
-					SetPosition(BattleUI_X + 4, 15, (char*)" ");
+					SetPosition(BattleUI_X + 7, 15, (char*)" ");
 					printf_s("%s의 공격!", _Enemy->Name);
-					SetPosition(BattleUI_X + 6, 16, (char*)" ");
+					SetPosition(BattleUI_X + 8, 16, (char*)" ");
 					printf_s("1 데미지!");
 				}
 				break;
@@ -983,7 +1016,7 @@ void BattleScene(OBJECT* _Player, OBJECT* _Enemy, int* Encounter)
 					Sleep(1000);
 
 					//실험용 겸치 뻥튀기(원래값 25)
-					_Player->Info.EXP = _Player->Info.EXP + (_Enemy->Info.Level * 100);
+					_Player->Info.EXP = _Player->Info.EXP + (_Enemy->Info.Level * 25);
 					_Player->Inventory.Item[0].quantity = _Player->Inventory.Item[0].quantity + (_Enemy->Info.Level * 100);
 					if (_Player->Info.EXP >= 100)
 					{
@@ -1007,11 +1040,13 @@ void InventoryScene(OBJECT* _Player)
 	while (inventoryHelper)
 	{
 		SetPosition(Width, 21, (char*)"사용할 아이템 선택\n");
-		SetPosition(Width-20, 22, (char*)" ");
+		SetPosition(Width-20, 23, (char*)" ");
 
 		for (int i = 0; i < 3; i++)
 			printf_s("%d. %s(%d개) ", i, _Player->Inventory.Item[i].Name, _Player->Inventory.Item[i].quantity);
 		printf_s("0. 종료\n");
+		SetPosition(Width, 21, (char*)"사용할 아이템 선택\n");
+		SetPosition(Width + 9, 25, (char*)" ");
 		scanf("%d", &inventoryHelper);
 
 		if (_Player->Inventory.Item[itemtype].type==0)
